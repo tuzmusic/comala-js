@@ -1,4 +1,4 @@
-import { createTag } from '../src/app';
+import createTag from '../src/createTag';
 
 describe('createTag', () => {
   it('creates a bare tag', () => {

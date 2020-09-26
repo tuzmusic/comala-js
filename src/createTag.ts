@@ -1,17 +1,15 @@
 console.log('Hello app');
 
-interface TagOptions {
-  closing?: boolean;
-}
-
-const defaultOptions: TagOptions = {
+const defaultOptions = {
   closing: true
 };
 
-export function createTag(
+type TagOptions = typeof defaultOptions
+
+export default function createTag(
   name: string,
   parameters: Record<string, string | boolean> = {}, // TODO: catalog parameters in a type
-  body: string | null = null,
+  body?: string,
   options: TagOptions = defaultOptions
 ): string {
   
