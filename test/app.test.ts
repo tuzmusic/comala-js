@@ -1,7 +1,8 @@
-import { testFunc } from '../src/app';
+import { createTag } from '../src/app';
 
-describe("app", () => {
-    it("should return 42", () => {
-      expect(testFunc()).toEqual(42)
-    });
+describe('createTag', () => {
+  it('creates a bare tag', () => {
+    const res = createTag('workflow');
+    expect(res).toEqual(['{workflow}', '{workflow}'].join('\n'));
+  });
 });
