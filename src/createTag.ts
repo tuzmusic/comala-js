@@ -13,17 +13,15 @@ export default function createTag(
   options: TagOptions = defaultOptions
 ): string {
   
-  function getOpeningTag() {
+  function getOpeningTag(): string {
     let openingTag = '{' + name;
-    
+  
     for (const key in parameters) {
-      if (parameters.hasOwnProperty(key)) { // really shouldn't be necessary but typescript complains
-        openingTag += (key == Object.keys(parameters)[0] ? ':' : '|');
-        if (key !== 'unnamed') openingTag += `${ key }=`;
-        openingTag += `${ parameters[key] }`;
-      }
+      openingTag += (key == Object.keys(parameters)[0] ? ':' : '|');
+      if (key !== 'unnamed') openingTag += `${ key }=`;
+      openingTag += `${ parameters[key] }`;
     }
-    
+  
     return openingTag + '}';
   }
   
