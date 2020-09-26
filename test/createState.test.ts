@@ -9,9 +9,8 @@ describe('createState', () => {
     expect(actual).toEqual(expected);
   });
   
-  describe('event handlers', () => {
-    
-    it('can assign event handlers', () => {
+  describe('transition handlers', () => {
+    it('can assign transition handlers', () => {
       const state = createState('In Progress', {
         onSubmit: 'Submitted',
         onUpdated: 'Updated',
@@ -30,7 +29,30 @@ describe('createState', () => {
       const expected = [openingTag, '{state}'].join('\n');
       expect(state).toEqual(expected);
     });
-    
+  });
+  
+  xdescribe('approvals', () => {
+  
+  });
+  
+  xdescribe('workflow parameters', () => {
+  
+  });
+  
+  xdescribe('expiry date', () => {
+  
+  });
+  
+  xdescribe('tasks', () => {
+  
+  });
+  
+  xdescribe('final state', () => {
+  
+  });
+  
+  xdescribe('events', () => {
+  
   });
   
 });
