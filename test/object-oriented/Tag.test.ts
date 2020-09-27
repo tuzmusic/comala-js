@@ -25,7 +25,6 @@ describe('Tag class', () => {
       expect(tag.markup).toEqual(lines([
         '{tag:parama=abc|paramb=123|paramc=xyz}', '{tag}'
       ]));
-      
     });
     
     it('can be self-closing', () => {
@@ -226,8 +225,59 @@ describe('Tag class', () => {
         hideSelection: 'true'
       });
       workflow.addChild(approved);
-      
+  
       expect(workflow.markup).toEqual(finished);
     });
   });
+});
+
+describe('Additional functionality', () => {
+  describe('Text Content param in constructor', () => {
+    it('can take a textContent parameter in place of using addTextContent', () => {
+      const tag = new Tag('tag', { param: 'abc', textContent: ['line 1', 'line 2'] })
+      expect(tag.markup).toEqual(lines([
+        '{tag:param=abc}',
+        '\tline 1',
+        '\tline 2',
+        '{tag}',
+      ]));
+    });
+    
+    it('can handle a single string textContent parameter', () => {
+      const tag = new Tag('tag', { param: 'abc', textContent: 'line 1' })
+      expect(tag.markup).toEqual(lines([
+        '{tag:param=abc}',
+        '\tline 1',
+        '{tag}',
+      ]));
+      
+    });
+    
+    it('can handle no textContent parameter', () => {
+      const tag = new Tag('tag', { param: 'abc' })
+      expect(tag.markup).toEqual(lines([
+        '{tag:param=abc}',
+        '{tag}',
+      ]));
+    });
+  });
+  
+  describe('child tags in constructor', () => {
+    it('can take child tags in the constructor', () => {
+      const childTag1 = new Tag('child1');
+      const childTag2 = new Tag('child2');
+      const tag = new Tag('parent', { childTags: [childTag1, childTag2] });
+      
+      expect(tag.markup).toEqual(lines([
+        '{parent}',
+        '\t{child1}',
+        '\t{child1}',
+        '\t{child2}',
+        '\t{child2}',
+        '{parent}',
+      ]));
+      
+    });
+  });
+  
 });

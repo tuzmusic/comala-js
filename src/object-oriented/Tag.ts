@@ -8,9 +8,27 @@ export default class Tag {
   textLines: string[] = []
   children: Tag[] = []
   
-  constructor(tagName: string, parameters: Record<string, string> = {}, selfClosing: boolean = false) {
+  constructor(tagName: string, parameters: Record<string, string | string[] | Tag[]> = {}, selfClosing: boolean = false) {
     this.tagName = tagName;
-    this.parameters = parameters;
+  
+    // Get text content from parameters.
+    const { textContent, childTags } = parameters;
+    if (textContent) {
+      // if a single textContent argument, convert to array and store
+      this.textLines = typeof textContent === 'string' ? [textContent as string] : textContent as string[];
+      // get rid of the parameter since we're not using it as an actual workflow param
+      delete parameters['textContent'];
+    }
+  
+    // Get children from parameters
+    if (childTags && childTags instanceof Array && childTags.every((t: any) => t instanceof Tag)) {
+      this.children = childTags as Tag[];
+      // get rid of the parameter since we're not using it as an actual workflow param
+      delete parameters['childTags'];
+    }
+  
+    // this explicit cast is the only way to tell Typescript that
+    this.parameters = parameters as Record<string, string>;
     this.selfClosing = selfClosing;
   }
   
