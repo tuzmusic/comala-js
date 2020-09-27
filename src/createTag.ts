@@ -8,7 +8,9 @@ type TagOptions = typeof defaultOptions
 
 export default function createTag(
   name: string,
-  parameters: Record<string, string | boolean> = {}, // TODO: catalog parameters in a type
+  parameters: Record<string,
+    string | boolean |
+    Array<string | boolean>> = {}, // TODO: catalog parameters in a type
   body?: string,
   options: TagOptions = defaultOptions
 ): string {
@@ -16,10 +18,16 @@ export default function createTag(
   function getOpeningTag(): string {
     let openingTag = '{' + name;
   
+    // add parameters
     for (const key in parameters) {
       openingTag += (key == Object.keys(parameters)[0] ? ':' : '|');
-      if (key !== 'unnamed') openingTag += `${ key }=`;
-      openingTag += `${ parameters[key] }`;
+    
+      if (key !== 'unnamed')
+        openingTag += key + '=';
+    
+      const value = parameters[key];
+    
+      openingTag += [value].join(',');
     }
   
     return openingTag + '}';

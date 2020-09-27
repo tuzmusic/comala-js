@@ -40,7 +40,8 @@ interface ApprovalConfig {
     
     If one or more conditions are not met, the Approve/Reject buttons will be disabled. However, reviewer assignment will still be possible.
   */
-  /*
+  
+  /* MORE INFO ABOUT THIS SECTION
   Reviewers / Assignees
   Specify if, who and how reviewers are assigned to the content review.
   
