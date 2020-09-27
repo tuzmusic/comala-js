@@ -6,30 +6,34 @@ const defaultOptions = {
 
 type TagOptions = typeof defaultOptions
 
+export type ParameterKey = string // TODO: catalog parameters in a type
+
+export type SingleParameterValue = string | boolean | number
+
+export type ParameterValue = SingleParameterValue | Array<SingleParameterValue>
+
 export default function createTag(
   name: string,
-  parameters: Record<string,
-    string | boolean |
-    Array<string | boolean>> = {}, // TODO: catalog parameters in a type
+  parameters: Record<ParameterKey, ParameterValue> = {},
   body?: string,
   options: TagOptions = defaultOptions
 ): string {
   
   function getOpeningTag(): string {
     let openingTag = '{' + name;
-  
+    
     // add parameters
     for (const key in parameters) {
       openingTag += (key == Object.keys(parameters)[0] ? ':' : '|');
-    
+  
       if (key !== 'unnamed')
         openingTag += key + '=';
-    
+  
       const value = parameters[key];
-    
+  
       openingTag += [value].join(',');
     }
-  
+    
     return openingTag + '}';
   }
   

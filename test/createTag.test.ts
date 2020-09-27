@@ -1,6 +1,6 @@
 import createTag from '../src/createTag';
 
-function lines(strs: string[]): string {
+export function lines(strs: string[]): string {
   return strs.join('\n');
 }
 
@@ -30,7 +30,6 @@ describe('createTag', () => {
         '{workflow:name=Some Workflow|labels=one,two,three}', '{workflow}'
       ])
       expect(actual).toEqual(expected);
-      
     });
     
     it('can have an unnamed parameter', () => {

@@ -1,4 +1,6 @@
-type OneOrMore = string | Array<string>
+import createTag, { ParameterValue } from './createTag';
+
+type OneOrMore = ParameterValue
 
 interface ApprovalConfig {
   /**
@@ -94,7 +96,7 @@ interface ApprovalConfig {
    Number ≥ 0
    
    Supports Value References (v4.18+)
-   
+ 
    If using the selectedapprover or selectedapprovers parameters, the minimum defaults to 1.
    */
   minimum: number;
@@ -105,7 +107,7 @@ interface ApprovalConfig {
    first parameter) will automatically have the same reviewers assigned ("sticky assignees")
    - false: don't remember assignees
    */
-  rememberassignees: boolean;
+  rememberAssignees: boolean;
   
   /**  Enable approval roles feature
    - true: approval roles are enabled, users assigning a review will be able to record the role that the reviewer is
@@ -121,7 +123,7 @@ interface ApprovalConfig {
    
    Note: Users who do not have Edit content permission will not be allowed to review.
    */
-  selectedapprover: OneOrMore;
+  selectedApprover: OneOrMore;
   
   /** One or more reviewers must be assigned from the list:
    
@@ -131,7 +133,7 @@ interface ApprovalConfig {
    
    Note: Users who do not have Edit content permission will not be allowed to review.
    */
-  selectedapprovers: OneOrMore;
+  selectedApprovers: OneOrMore;
   
   /** Reviewers must be in the specified list:
    
@@ -146,9 +148,9 @@ interface ApprovalConfig {
   /** Assigners must be in the specified list:
    
    A comma-separated list of usernames‡
-   
+ 
    Supports Value References
-   
+ 
    Note:
    - Users who do not have Edit content permission will not be allowed to assign. It can be used along with the
    allowedassigngroups parameter.
@@ -156,7 +158,7 @@ interface ApprovalConfig {
    has been assigned. To prevent the review from being undertaken before assignment of a reviewer, use this
    parameter in conjunction with one of selectedapprover or selectedapprovers parameters.
    */
-  allowedassignusers: OneOrMore;
+  allowedAssignUsers: OneOrMore;
   
   /**  Assigners must be a member of the specified user group(s):
    
@@ -170,7 +172,7 @@ interface ApprovalConfig {
    - Adding this parameter does not disable the review for users who have Edit content permission until a reviewer
    has been assigned. To prevent the review from being undertaken before assignment of a reviewer, use this parameter in conjunction with one of  selectedapprover or  selectedapprovers parameters.
    */
-  allowedassigngroups: OneOrMore;
+  allowedAssignGroups: OneOrMore;
   
   /* ADD THESE TO THE API LATER
 
@@ -200,4 +202,29 @@ Valid values in range of 1 → 232
 For best results, use multiples of 40.
 Items of the same weight will be ordered alphabetically A→Z
 Completed reviews will bubble to the top of the list, in order of completion*/
+}
+
+// TODO: better names for others as well maybe
+// (these are just camel-case lowercase things)
+// TODO: convert using this table instead of just toLowerCase. 
+//  TS is being annoying about it.
+const approvalsKeysMap: Partial<Record<keyof ApprovalConfig, string>> = {
+  rememberAssignees: 'rememberassignees',
+  selectedApprover: 'selectedapprover',
+  selectedApprovers: 'selectedapprovers',
+  allowedAssignUsers: 'allowedassignusers',
+  allowedAssignGroups: 'allowedassigngroups',
+};
+
+// TODO: this function should be a member of a state
+//  so it can be called on a state, right?
+export default function createApproval(state: string, parameters: Partial<ApprovalConfig>) {
+  // convert parameters
+  const newParams: Record<string, ParameterValue> = { unnamed: state };
+  
+  Object.entries(parameters).forEach(([key, value]) => {
+    newParams[key.toLowerCase()] = value;
+  });
+  
+  return createTag('approval', newParams, null, { closing: false });
 }
