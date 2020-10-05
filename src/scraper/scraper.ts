@@ -1,6 +1,8 @@
 import cheerio from 'cheerio';
 import fs from 'fs';
 import request from 'request';
+// @ts-ignore
+import camelCase from 'lodash.camelcase';
 
 //region Types
 type ScrapeTarget = {
@@ -26,6 +28,11 @@ type DocObject = {
   required?: boolean;
   unnamed?: boolean;
 }
+
+type MacroObject = {
+  name: string;
+  macros: ScrapeTarget[];
+}
 //endregion
 
 // Async version of request function
@@ -38,6 +45,8 @@ function asyncRequest(url: string): Promise<{ response: any; html: string }> {
   });
 }
 
+const macrosDir = '/Users/tuzmacbookpro2017/dev/MyProjects/comala-js/src/Macros';
+
 async function scrape(url: string): Promise<ScrapedObject[]> {
   // if (!url) {
   //   const htmlUrl = '/Users/tuzmacbookpro2017/dev/MyProjects/comala-js/test/fixtures/state-macro.html';
@@ -46,6 +55,7 @@ async function scrape(url: string): Promise<ScrapedObject[]> {
   const { html } = await asyncRequest(url);
   
   const $ = cheerio.load(html);
+  
   // todo: make sure that it's the right table.
   const table = $('table.confluenceTable').first();
   const rows = $('tr', table);
@@ -53,10 +63,12 @@ async function scrape(url: string): Promise<ScrapedObject[]> {
   const parameters: ScrapedObject[] = [];
   const propNames = ['parameterName', 'required', 'defaultValue', 'notes', 'version'];
   
+  // go through all the rows in the table
   for (let i = 0; i < rows.length; i++) {
     const cells = $('td', rows.get(i));
     if (cells.length !== propNames.length) continue;
-    
+  
+    // go through all the cells (columns) in the row
     const param: Partial<ScrapedObject> = {};
     for (let j = 0; j < cells.length; j++) {
       const cell = cells.eq(j);
@@ -74,7 +86,7 @@ async function scrape(url: string): Promise<ScrapedObject[]> {
   return parameters;
 }
 
-function constructParam({ parameterName, defaultValue, notes, required, version }: ScrapedObject): string[] {
+function constructParam({ parameterName, defaultValue, notes, required }: ScrapedObject): string[] {
   const editedParam: DocObject = { type: 'string', name: parameterName.text };
   
   // handle unnamed parameters
@@ -117,7 +129,7 @@ function constructParam({ parameterName, defaultValue, notes, required, version 
   return doc;
 }
 
-async function createFile(macro: ScrapeTarget) {
+async function createFile(path: string, macro: ScrapeTarget) {
   const fileLines = [
     'import Tag from \'./Tag\'',
     '',
@@ -133,31 +145,24 @@ async function createFile(macro: ScrapeTarget) {
   const str = fileLines.join('\n');
   // console.log(str);
   
-  const path = `/Users/tuzmacbookpro2017/dev/MyProjects/comala-js/src/${ macro.className }.ts`;
+  // const path = `${ macrosDir }${ macro.className }.ts`;
   
   fs.writeFileSync(path, str);
   console.log(fs.readFileSync(path, 'utf8'));
 }
-
-const macros: ScrapeTarget[] = [
-  { className: 'State', url: 'https://wiki.comalatech.com/display/CDML/state+macro#' }
-];
 
 async function getAllMacros() {
   const { html } = await asyncRequest('https://wiki.comalatech.com/display/CDML/Macros');
   const $ = cheerio.load(html);
   const headings = $('h2', '.contentLayout2');
   
-  const macroLists: {
-    name: string;
-    macros: ScrapeTarget[];
-  }[] = [];
+  const macroLists: MacroObject[] = [];
   
-  const baseUrl = 'https://wiki.comalatech';
+  const baseUrl = 'https://wiki.comalatech.com';
   
   headings.each(i => {
     const heading = headings.eq(i);
-    if (heading.text() === 'Other') return
+    if (heading.text() === 'Other') return;
     
     const macroListObject = { name: heading.text(), macros: [] as ScrapeTarget[] };
     
@@ -170,24 +175,37 @@ async function getAllMacros() {
       if (tagName.toLowerCase() === 'ul')
         ul = current;
       else
-        current = current.next()
+        current = current.next();
     }
-    
     // scrape the list
     const macrosUnderHeading = $('a', ul);
     macrosUnderHeading.each(j => {
       const link = macrosUnderHeading.eq(j);
+      const className = link.text().replace(' macro', '');
       macroListObject.macros.push({
-        className: link.text().replace(' macro', ''), url: baseUrl + link.attr('href')
+        className:
+          className[0].toUpperCase() +
+          camelCase(className).substring(1),
+        url: baseUrl + link.attr('href')
       });
     });
-    
+  
     // add the list of macros to our list of... lists!
     macroLists.push(macroListObject);
   });
-  console.log(macroLists);
+  return macroLists;
+  // console.log(macroLists);
 }
 
-getAllMacros();
-
+getAllMacros().then(async macroLists => {
+  for (const { name, macros } of macroLists) {
+    const path = macrosDir + `/${ name }`;
+    try {
+      fs.mkdirSync(path);
+    } catch {}
+    macros.forEach(async macro => {
+      await createFile(path + `/${ macro.className }.ts`, macro);
+    });
+  }
+});
 // createFile({ className: 'State', url: 'https://wiki.comalatech.com/display/CDML/state+macro#' });
