@@ -1,4 +1,4 @@
-import { lines } from '../../test/createTag.test';
+import { lines } from '../test/createTag.test';
 
 export default class Tag {
   

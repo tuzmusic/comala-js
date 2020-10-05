@@ -1,4 +1,4 @@
-import Tag from '../../src/object-oriented/Tag';
+import Tag from '../../src/Tag';
 import { lines } from '../createTag.test';
 
 describe('Tag class', () => {
