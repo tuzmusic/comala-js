@@ -1,8 +1,12 @@
 import cheerio from 'cheerio';
 import fs from 'fs';
 import request from 'request';
+import shell from 'shelljs';
 // @ts-ignore
 import camelCase from 'lodash.camelcase';
+import * as path from 'path';
+
+const macrosDir = path.join(__dirname, '../../../src/Macros');
 
 //region Types
 type ScrapeTarget = {
@@ -45,29 +49,23 @@ function asyncRequest(url: string): Promise<{ response: any; html: string }> {
   });
 }
 
-const macrosDir = '/Users/tuzmacbookpro2017/dev/MyProjects/comala-js/src/Macros';
-
 async function scrape(url: string): Promise<ScrapedObject[]> {
-  // if (!url) {
-  //   const htmlUrl = '/Users/tuzmacbookpro2017/dev/MyProjects/comala-js/test/fixtures/state-macro.html';
-  //   const content = fs.readFileSync(htmlUrl, { encoding: 'utf8', flag: 'r' });
-  // }
   const { html } = await asyncRequest(url);
-  
+
   const $ = cheerio.load(html);
-  
+
   // todo: make sure that it's the right table.
   const table = $('table.confluenceTable').first();
   const rows = $('tr', table);
-  
+
   const parameters: ScrapedObject[] = [];
   const propNames = ['parameterName', 'required', 'defaultValue', 'notes', 'version'];
-  
+
   // go through all the rows in the table
   for (let i = 0; i < rows.length; i++) {
     const cells = $('td', rows.get(i));
     if (cells.length !== propNames.length) continue;
-    
+
     // go through all the cells (columns) in the row
     const param: Partial<ScrapedObject> = {};
     for (let j = 0; j < cells.length; j++) {
@@ -75,43 +73,43 @@ async function scrape(url: string): Promise<ScrapedObject[]> {
       const info = propNames[j];
       param[info as keyof ScrapedObject] = {
         html: cell.html(),
-        text: cell.text()
+        text: cell.text(),
       };
     }
-    
+
     if (param.notes.text.startsWith('OBSOLETE')) continue;
     parameters.push(param as ScrapedObject);
   }
-  
+
   return parameters;
 }
 
 function constructParam({ parameterName, defaultValue, notes, required }: ScrapedObject): string[] {
   const editedParam: DocObject = { type: 'string', name: parameterName.text };
-  
+
   // handle unnamed parameters
   if (parameterName.text.startsWith('unnamed')) {
     editedParam.name = parameterName.text.split(' ').pop();
     editedParam.unnamed = true;
   }
-  
+
   // rename body parameter
   else if (parameterName.text === 'macro body')
     editedParam.name = 'body';
-  
+
   // is parameter required?
   if (required.html.includes('img'))
     editedParam.required = true;
-  
+
   // variable type for parameter
   if (['true', 'false'].includes(defaultValue.text))
     editedParam.type = 'boolean';
-  
+
   const doc = ['/**', ` * @type {${ editedParam.type }}`];
-  
+
   if (editedParam.required)
     doc.push(' * This parameter is REQUIRED.');
-  
+
   // TODO: use cheerio to actually modify the html how we want it
   // we might even use this to convert to JSDoc markup instead of
   // html
@@ -119,60 +117,70 @@ function constructParam({ parameterName, defaultValue, notes, required }: Scrape
   doc.push(
     ' * ' +
     notes.html
-      .replace(/\n+/g, '')// replace newlines
-      .replace(/  +/g, ' ') // reduce spaces
+      .replace(/\n+/g, '') // replace newlines
+      .replace(/  +/g, ' '), // reduce spaces
   );
-  
+
   // declaration
-  doc.push(' */', `${ editedParam.name }: ${ editedParam.type };\n`,);
-  
+  doc.push(' */', `${ editedParam.name }: ${ editedParam.type };`, '');
+
   return doc;
 }
 
 async function createFile(path: string, { className, url }: ScrapeTarget) {
   // header (import statement)
-  const fileLines = ['import Tag from \'../../Tag\'\n'];
-  
-  // `class ${ className } extends Tag {`,
-  
-  // parameter interface
-  fileLines.push(`interface ${className}Params {`)
-  
+  const fileLines: string[] = [];
+
+  const interfaceName = `${ className }Params`;
+  //region PARAMETER INTERFACE
+  fileLines.push(`interface ${ interfaceName } {`);
+
   const allParameters = await scrape(url);
-  const textLines: string[] = allParameters.map(constructParam).flat();
-  
-  const charsToRemove = ['†','‡']
-  textLines.forEach(line => fileLines.push('\t' + line));
-  
+  const textLines = allParameters.map(constructParam).flat();
+
+  textLines.forEach(line => fileLines.push('\t' + line.replace(/[†‡]/g, '')));
+  fileLines.pop(); // remove final extra line at end of interface definition
+  fileLines.push('}\n');
+  //endregion PARAMETER INTERFACE
+
+  //region CLASS
+  fileLines.push(`export default class ${ className } {`);
+  const classLines = [
+    `parameters: ${ interfaceName }\n`,
+    `constructor(firstParam: string, params: ${ interfaceName }) { // todo: argument name for unnamed parameter`,
+    '\tthis.parameters = params;',
+    '\t// todo: deal with unnamed parameter',
+    '}',
+  ];
+  classLines.forEach(line => fileLines.push('\t' + line));
   fileLines.push('}');
+  //endregion CLASS
+
+  console.log('Creating file:', path);
   const str = fileLines.join('\n');
-  // console.log(str);
-  
-  // const path = `${ macrosDir }${ macro.className }.ts`;
-  
   fs.writeFileSync(path, str);
-  console.log(fs.readFileSync(path, 'utf8'));
+  // console.log(fs.readFileSync(path, 'utf8'));
 }
 
 async function getAllMacros() {
   const { html } = await asyncRequest('https://wiki.comalatech.com/display/CDML/Macros');
   const $ = cheerio.load(html);
   const headings = $('h2', '.contentLayout2');
-  
+
   const macroLists: MacroObject[] = [];
-  
+
   const baseUrl = 'https://wiki.comalatech.com';
-  
+
   headings.each(i => {
     const heading = headings.eq(i);
     if (heading.text() === 'Other') return;
-    
+
     const macroListObject = { name: heading.text(), macros: [] as ScrapeTarget[] };
-    
+
     // find the list
     let ul;
     let current = heading.next();
-    
+
     while (!ul) {
       const tagName: string = current.prop('tagName');
       if (tagName.toLowerCase() === 'ul')
@@ -189,10 +197,10 @@ async function getAllMacros() {
         className:
           className[0].toUpperCase() +
           camelCase(className).substring(1),
-        url: baseUrl + link.attr('href')
+        url: baseUrl + link.attr('href'),
       });
     });
-    
+
     // add the list of macros to our list of... lists!
     macroLists.push(macroListObject);
   });
@@ -202,13 +210,11 @@ async function getAllMacros() {
 
 getAllMacros().then(async macroLists => {
   for (const { name, macros } of macroLists) {
-    const path = macrosDir + `/${ name }`;
-    try {
-      fs.mkdirSync(path);
-    } catch {}
-    macros.forEach(async macro => {
-      await createFile(path + `/${ macro.className }.ts`, macro);
-    });
+    const dirPath = path.join(macrosDir, name);
+    shell.mkdir('-p', dirPath);
+    macros.forEach(macro =>
+      createFile(path.join(dirPath, `${ macro.className }.ts`), macro),
+    );
   }
 });
 // createFile({ className: 'State', url: 'https://wiki.comalatech.com/display/CDML/state+macro#' });
