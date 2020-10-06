@@ -84,6 +84,32 @@ async function scrape(url: string): Promise<ScrapedObject[]> {
   return parameters;
 }
 
+function fixNotes(html: string) {
+  const $ = cheerio.load(html, { normalizeWhitespace: true });
+  // remove icon tags. doesn't seem to completely work, but it's a start.
+  // $('.icon').remove();
+
+  // this is way too aggressive hahaha
+  /*const allDivs = $('div');
+  allDivs.each(i => {
+    const thisDiv = allDivs.eq(i);
+    thisDiv.replaceWith(thisDiv.html());
+  });*/
+
+  const outerDiv = $('div');
+  // strip any outer div
+  if (outerDiv.length) {
+    html = outerDiv.html();
+
+    // if there's a div within that, remove it
+    const innerDiv = $('div', outerDiv);
+    if (innerDiv.length)
+      innerDiv.remove();
+  }
+
+  return html;
+}
+
 function constructParam({ parameterName, defaultValue, notes, required }: ScrapedObject): string[] {
   const editedParam: DocObject = { type: 'string', name: parameterName.text };
 
@@ -110,13 +136,15 @@ function constructParam({ parameterName, defaultValue, notes, required }: Scrape
   if (editedParam.required)
     doc.push(' * This parameter is REQUIRED.');
 
+  const fixedNotes = fixNotes(notes.html);
+
   // TODO: use cheerio to actually modify the html how we want it
   // we might even use this to convert to JSDoc markup instead of
   // html
   // notes
   doc.push(
     ' * ' +
-    notes.html
+    fixedNotes
       .replace(/\n+/g, '') // replace newlines
       .replace(/  +/g, ' '), // reduce spaces
   );
