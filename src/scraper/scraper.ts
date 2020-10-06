@@ -67,7 +67,7 @@ async function scrape(url: string): Promise<ScrapedObject[]> {
   for (let i = 0; i < rows.length; i++) {
     const cells = $('td', rows.get(i));
     if (cells.length !== propNames.length) continue;
-  
+    
     // go through all the cells (columns) in the row
     const param: Partial<ScrapedObject> = {};
     for (let j = 0; j < cells.length; j++) {
@@ -129,16 +129,19 @@ function constructParam({ parameterName, defaultValue, notes, required }: Scrape
   return doc;
 }
 
-async function createFile(path: string, macro: ScrapeTarget) {
-  const fileLines = [
-    'import Tag from \'./Tag\'',
-    '',
-    `class ${ macro.className } extends Tag {`,
-  ];
-  const allParameters = scrape(macro.url);
-  // console.log(allParameters)
-  const textLines: string[] = (await allParameters).map(constructParam).flat();
+async function createFile(path: string, { className, url }: ScrapeTarget) {
+  // header (import statement)
+  const fileLines = ['import Tag from \'../../Tag\'\n'];
   
+  // `class ${ className } extends Tag {`,
+  
+  // parameter interface
+  fileLines.push(`interface ${className}Params {`)
+  
+  const allParameters = await scrape(url);
+  const textLines: string[] = allParameters.map(constructParam).flat();
+  
+  const charsToRemove = ['†','‡']
   textLines.forEach(line => fileLines.push('\t' + line));
   
   fileLines.push('}');
@@ -189,7 +192,7 @@ async function getAllMacros() {
         url: baseUrl + link.attr('href')
       });
     });
-  
+    
     // add the list of macros to our list of... lists!
     macroLists.push(macroListObject);
   });
