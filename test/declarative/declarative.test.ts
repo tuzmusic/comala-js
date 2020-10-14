@@ -26,24 +26,34 @@ describe('createWorkflow', () => {
   const shouldMatch = expect(workflow.markup).toMatch;
 
   it('has the workflow tag', () => {
-    inside(workflow.markup).expect({ tagNamed: 'workflow' })
+    inside(workflow.markup)
+      .expect({ tagNamed: 'workflow' })
       .toComeBefore({ name: 'Audit Workflow with Assigned Editing' })
       .toComeBefore({ label: 'workflow=internal-audit-record-editassign' });
   });
 
   describe('States', () => {
     it('has the basic state tags', () => {
-      expectLines(['{state:In Approval', '{state:In Progress', '{state:Published']);
+      inside(workflow.markup)
+        .expect({ stateNamed: 'In Progress' })
+        .toComeBefore({ stateNamed: 'In Approval' })
+        .toComeBefore({ stateNamed: 'Published' });
     });
 
     it('Assigns the "approved" parameter', () => {
-      expect(stateLines.progress).toContain('|approved=In Approval');
-      expect(stateLines.approval).toContain('|approved=Published');
+      inside(workflow.markup)
+        .expect({ stateNamed: 'In Progress' })
+        .toComeBefore({ approved: 'In Approval' });
+      inside(workflow.markup)
+        .expect({ stateNamed: 'In Approval' })
+        .toComeBefore({ approved: 'Published' });
     });
 
     it('adds simple parameters to the state tag', () => {
-      expect(stateLines.published).toContain('|final=true');
-      expect(stateLines.published).toContain('|hideselection=true');
+      inside(workflow.markup)
+        .expect({ stateNamed: 'Published' })
+        .toComeBefore({ final: 'true' })
+        .toComeBefore({ hideSelection: 'true' });
     });
   });
 
