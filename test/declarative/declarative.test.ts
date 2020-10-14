@@ -29,15 +29,11 @@ describe('createWorkflow', () => {
     Review: { approvalNamed: 'Audit Review' },
   };
 
-  const expectLines = (lines: string[]) => lines.forEach(line =>
-    inside(workflow.markup).expect(line).toOccur(),
-  );
-
   const shouldMatch = expect(workflow.markup).toMatch;
-  const inWorkflow = inside(workflow.markup).expect;
+  const inWorkflow = inside(workflow.markup);
 
   it('has the workflow tag', () => {
-    inside(workflow.markup)
+    inWorkflow
       .expect({ tagNamed: 'workflow' })
       .toHaveParam({ name: 'Audit Workflow with Assigned Editing' })
       .toHaveParam({ label: 'workflow=internal-audit-record-editassign' });
@@ -45,23 +41,20 @@ describe('createWorkflow', () => {
 
   describe('States', () => {
     it('has the basic state tags', () => {
-      inside(workflow.markup)
-        .expect(states.InProgress)
+      inWorkflow.expect(states.InProgress)
         .toComeBefore(states.InApproval)
         .toComeBefore(states.Published);
     });
 
     it('Assigns the "approved" parameter', () => {
-      inside(workflow.markup)
-        .expect(states.InProgress)
+      inWorkflow.expect(states.InProgress)
         .toComeBefore({ approved: 'In Approval' })
-        .and.expect(states.InApproval)
+        .and(states.InApproval)
         .toComeBefore({ approved: 'Published' });
     });
 
     it('adds simple parameters to the state tag', () => {
-      inside(workflow.markup)
-        .expect(states.Published)
+      inWorkflow.expect(states.Published)
         .toHaveParam({ final: 'true' })
         .toHaveParam({ hideSelection: 'true' });
     });
@@ -69,36 +62,34 @@ describe('createWorkflow', () => {
 
   describe('Approvals', () => {
     it('Designates who is allowed to assign approvers', () => {
-      inside(workflow.markup).expect(approvals.Editing)
+      inWorkflow.expect(approvals.Editing)
         .toHaveParam({ allowedassigngroups: 'Internal Audit Managers' });
-      inside(workflow.markup).expect(approvals.Review)
+      inWorkflow.expect(approvals.Review)
         .toHaveParam({ allowedassigngroups: 'Internal Audit Managers' });
     });
 
     it('Designates who is allowed to be assigned to approvals', () => {
-      inside(workflow.markup)
-        .expect(approvals.Editing)
+      inWorkflow.expect(approvals.Editing)
         .toHaveParam({ selectedapprovers: 'Internal Audit Managers,Internal Audit Team' });
-      inside(workflow.markup)
-        .expect(states.InApproval)
+      inWorkflow.expect(states.InApproval)
         .toHaveParam({ selectedapprovers: 'SLI Internal' });
     });
 
     it('Creates the approval tags', () => {
-      inside(workflow.markup)
-        .expect(states.InProgress)
+      inWorkflow.expect(states.InProgress)
         .toHaveChild(approvals.Editing)
-        .and.expect(states.InApproval)
+        .and(states.InApproval)
         .toHaveChild(approvals.Review);
     });
 
     it('adds simple parameters to the approval tag', () => {
-      expect(approvalLines.editing).toContain('|rememberassignees=true');
-      expect(approvalLines.review).toContain('|rememberassignees=true');
+      inWorkflow.expect(approvals.Editing).toHaveParam({ rememberAssignees: true })
+        .and(approvals.Review).toHaveParam({ rememberAssignees: true });
     });
 
     describe('Tasks on approvals', () => {
       it('Adds the task in the approval', () => {
+
         shouldMatch(/{state:approval:Audit Editing.+\n.+{task:name=Assign editors|assignee=@author@/);
         shouldMatch(/{state:approval:Audit Review.+\n.+{task:name=Assign reviewers|assignee=@author@/);
       });

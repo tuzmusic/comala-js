@@ -2,7 +2,7 @@
 
 type FlexibleArgs =
   | string
-  | Record<'tagNamed' | 'unnamed' | 'stateNamed' | string, string>;
+  | Record<string, string | boolean | number>;
 
 type StringFunc = (args: FlexibleArgs) => RegexChainer;
 
@@ -10,7 +10,7 @@ export default class RegexChainer {
   source: string;
   stored: string;
 
-  and = this.reset;
+  // and = this.reset;
 
   // these aliases are defined at the end of the file
   // because referring to the functions, defined below, gives
@@ -18,11 +18,15 @@ export default class RegexChainer {
   toHaveParam: StringFunc;
   toHaveChild: StringFunc;
   toInclude: StringFunc;
+  andExpect: StringFunc;
+  and: StringFunc;
 
   constructor() {
     this.toHaveParam = this.toComeBefore;
     this.toHaveChild = this.toComeBefore; // todo: and check closing tag?
     this.toInclude = this.toComeBefore;
+    this.andExpect = this.expect;
+    this.and = this.expect;
   };
 
   get reset() {
@@ -31,17 +35,16 @@ export default class RegexChainer {
   }
 
   private static getRelevantString(args: FlexibleArgs): string {
-
     let str;
     if (typeof args === 'string') { // string
       str = args as string;
     } else {
-      if (args.hasOwnProperty('stateNamed')) {
-        args = { tagNamed: 'state', unnamed: args.stateNamed };
-      }
-      if (args.hasOwnProperty('approvalNamed')) {
-        args = { tagNamed: 'approval', unnamed: args.approvalNamed };
-      }
+      ['state', 'approval', 'task'].forEach(name => {
+        const key = name + 'Named';
+        const value = (args as { [key: string]: string })[key];
+        if (value) args = { tagNamed: name, unnamed: value };
+      });
+
       if (args.hasOwnProperty('tagNamed')) { // object with tagName property
         str = '{' + args.tagNamed + (args.unnamed ? `:${ args.unnamed }` : '');
       } else { // object without tagName property. treat as an object of params
