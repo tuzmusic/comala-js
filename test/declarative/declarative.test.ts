@@ -63,15 +63,15 @@ describe('createWorkflow', () => {
   describe('Approvals', () => {
     it('Designates who is allowed to assign approvers', () => {
       inWorkflow.expect(approvals.Editing)
-        .toHaveParam({ allowedassigngroups: 'Internal Audit Managers' });
-      inWorkflow.expect(approvals.Review)
+        .toHaveParam({ allowedassigngroups: 'Internal Audit Managers' })
+        .and(approvals.Review)
         .toHaveParam({ allowedassigngroups: 'Internal Audit Managers' });
     });
 
     it('Designates who is allowed to be assigned to approvals', () => {
       inWorkflow.expect(approvals.Editing)
-        .toHaveParam({ selectedapprovers: 'Internal Audit Managers,Internal Audit Team' });
-      inWorkflow.expect(states.InApproval)
+        .toHaveParam({ selectedapprovers: 'Internal Audit Managers,Internal Audit Team' })
+        .and(states.InApproval)
         .toHaveParam({ selectedapprovers: 'SLI Internal' });
     });
 
@@ -89,9 +89,14 @@ describe('createWorkflow', () => {
 
     describe('Tasks on approvals', () => {
       it('Adds the task in the approval', () => {
-
-        shouldMatch(/{state:approval:Audit Editing.+\n.+{task:name=Assign editors|assignee=@author@/);
-        shouldMatch(/{state:approval:Audit Review.+\n.+{task:name=Assign reviewers|assignee=@author@/);
+        inWorkflow.expect(approvals.Editing)
+          .toHaveChild({ tagNamed: 'task' })
+          .toHaveParam({ name: 'Assign editors' })
+          .toHaveParam({ assignee: '@author@' })
+          .andExpect(approvals.Review)
+          .toHaveChild({ tagNamed: 'task' })
+          .toHaveParam({ name: 'Assign reviewers' })
+          .toHaveParam({ assignee: '@author@' });
       });
     });
   });

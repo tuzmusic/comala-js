@@ -16,17 +16,19 @@ export default class RegexChainer {
   // because referring to the functions, defined below, gives
   // a TS error, despite the es-lint setting at the top.
   toHaveParam: StringFunc;
+  andHaveParam: StringFunc;
   toHaveChild: StringFunc;
   toInclude: StringFunc;
   andExpect: StringFunc;
   and: StringFunc;
 
   constructor() {
-    this.toHaveParam = this.toComeBefore;
-    this.toHaveChild = this.toComeBefore; // todo: and check closing tag?
-    this.toInclude = this.toComeBefore;
-    this.andExpect = this.expect;
-    this.and = this.expect;
+    this.toHaveParam =
+      this.andHaveParam =
+        this.toHaveChild =  // todo: and check closing tag?
+          this.toInclude = this.toComeBefore;
+    this.andExpect =
+      this.and = this.expect;
   };
 
   get reset() {
