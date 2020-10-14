@@ -1,3 +1,5 @@
+src/Macros
+
 lib-cov
 *.seed
 *.log
