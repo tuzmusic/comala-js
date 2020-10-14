@@ -1,42 +1,29 @@
+/* eslint @typescript-eslint/no-use-before-define: 0 */
+
 type FlexibleArgs =
   | string
   | Record<'tagNamed' | 'unnamed' | 'stateNamed' | string, string>;
 
-// eslint-disable-next-line @typescript-eslint/no-use-before-define
 type StringFunc = (args: FlexibleArgs) => RegexChainer;
 
 export default class RegexChainer {
   source: string;
   stored: string;
+
   and = this.reset;
-  toHaveParam = this.toComeBefore;
-  toHaveChild = this.toComeBefore; // todo: and check closing tag?
 
-  inside = (s: string) => {
-    this.stored = null;
-    this.source = s;
-    return this;
+  // these aliases are defined at the end of the file
+  // because referring to the functions, defined below, gives
+  // a TS error, despite the es-lint setting at the top.
+  toHaveParam: StringFunc;
+  toHaveChild: StringFunc;
+  toInclude: StringFunc;
+
+  constructor() {
+    this.toHaveParam = this.toComeBefore;
+    this.toHaveChild = this.toComeBefore; // todo: and check closing tag?
+    this.toInclude = this.toComeBefore;
   };
-
-  expect = (args: FlexibleArgs) => {
-    this.stored = RegexChainer.getRelevantString(args);
-    return this;
-  };
-
-  toOccur = () => expect(this.source).toMatch(this.stored);
-
-  toComeBefore: StringFunc = args => {
-    const { source, stored } = this;
-    if (!source || !stored) throw new Error('Arguments missing.');
-
-    const matchStr = `${ stored }.*${ RegexChainer.getRelevantString(args) }`;
-    console.log(matchStr);
-    const regExp = new RegExp(matchStr, 's');
-    expect(source).toMatch(regExp);
-
-    return this;
-  };
-  toInclude = this.toComeBefore;
 
   get reset() {
     this.stored = this.source = null;
@@ -65,6 +52,32 @@ export default class RegexChainer {
     return str.replace(/([|=])/g, '\\$1');
   }
 
+  inside = (s: string) => {
+    // aliases
+    this.stored = null;
+    this.source = s;
+    return this;
+  };
+
+  expect = (args: FlexibleArgs) => {
+    this.stored = RegexChainer.getRelevantString(args);
+    return this;
+  };
+
+  toOccur = () => expect(this.source).toMatch(this.stored);
+
+  toComeBefore: StringFunc = args => {
+    const { source, stored } = this;
+    if (!source || !stored) throw new Error('Arguments missing.');
+
+    const matchStr = `${ stored }.*${ RegexChainer.getRelevantString(args) }`;
+    console.log(matchStr);
+    const regExp = new RegExp(matchStr, 's');
+    expect(source).toMatch(regExp);
+
+    return this;
+  };
+
   toComeAfter: StringFunc = args => {
     const { stored } = this;
     if (!stored) throw new Error('Arguments missing.');
@@ -75,3 +88,5 @@ export default class RegexChainer {
     return this;
   };
 }
+
+
