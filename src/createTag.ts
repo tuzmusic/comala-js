@@ -1,5 +1,3 @@
-console.log('Hello app');
-
 const defaultOptions = {
   closing: true
 };

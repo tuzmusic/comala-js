@@ -1,6 +1,8 @@
-const workflow = {
-  name: 'Audit Workflow with Assigned Editing ',
-  label: 'workflow=interna-audit-record-editassign',
+import { Event } from './api-constants';
+
+export const workflow = {
+  name: 'Audit Workflow with Assigned Editing',
+  label: 'workflow=internal-audit-record-editassign',
   states: [
     {
       name: 'In Progress',
@@ -80,6 +82,6 @@ const workflow = {
         },
       },
     },
-    { name: 'Published', final: true },
+    { name: 'Published', final: true, hideSelection: true },
   ],
 };

@@ -1,0 +1,50 @@
+{workflow:name=Audit Workflow with Assigned Editing|label=workflow=internal-audit-record-editassign}
+
+    {state:In Progress|approved=In Approval|colour=#172B4D}
+=        {approval:Audit Editing|rememberassignees=true|allowedassigngroups=Internal Audit Managers|selectedapprovers=Internal Audit Managers,Internal Audit Team}
+        {task:name=Assign editors|assignee=@author@}
+    {state}
+
+    approved=Published}
+        {approval:Audit Review|rememberassignees=true|allowedassigngroups=Internal Audit Managers|selectedapprovers=SLI Internal}
+        {task:name=Assign reviewers|assignee=@author@}
+    {state}
+
+    {state:Published|final=true|hideselection=true}
+    {state}
+
+    {trigger:pagecreated}
+        {set-restrictions:type=view|group=Internal Audit Managers,Internal Audit Team}
+        {set-restrictions:type=edit|group=Internal Audit Managers,Internal Audit Team}
+    {trigger}
+
+    {trigger:labeladded|label=workflow=internal-audit-record-editassign}
+        {set-restrictions:type=view|group=Internal Audit Managers,Internal Audit Team}
+        {set-restrictions:type=edit|group=Internal Audit Managers,Internal Audit Team}
+    {trigger}
+
+    {trigger:pageapprovalassigned|approval=Audit Editing}
+        {complete-task:task=Assign editors}
+    {trigger}
+
+    {trigger:statechanged|state=In Approval}
+        {set-restrictions:type=edit|group=empty-group}
+    {trigger}
+
+    {trigger:pageapprovalassigned|approval=Audit Review}
+        {complete-task:task=Assign reviewers}
+        {set-restrictions:type=view|group=Internal Audit Managers,Internal Audit Team|user=@approvalassignees@}
+        {set-restrictions:type=edit|group=empty-group}
+    {trigger}
+
+    {trigger:approvalunassigned|approval=Audit Review}
+        {set-restrictions:type=view|group=Internal Audit Managers,Internal Audit Team|user=@approvalassignees@}
+        {set-restrictions:type=edit|group=empty-group}
+    {trigger}
+
+    {trigger:pagerejected|approval=Audit Review|partial=true}
+        {set-state:In Progress}
+        {set-restrictions:type=view|group=Internal Audit Managers,Internal Audit Team}
+        {set-restrictions:type=edit|group=Internal Audit Managers,Internal Audit Team}
+    {trigger}
+{workflow}
