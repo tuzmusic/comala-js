@@ -1,5 +1,8 @@
-import { workflow as workflowObj } from '../src/declarative-api/createdWorkflow';
-import WorkflowCreator from '../src/declarative-api/classes/WorkflowCreator';
+import { workflow as workflowObj } from '../../src/declarative-api/createdWorkflow';
+import WorkflowCreator from '../../src/declarative-api/classes/WorkflowCreator';
+import RegexChainer from './RegexChainer';
+
+const { inside } = new RegexChainer();
 
 describe('createWorkflow', () => {
   const workflow = WorkflowCreator.create(workflowObj);
@@ -16,14 +19,18 @@ describe('createWorkflow', () => {
       = workflow.markup.split('\n').find(l => l.includes(`{approval:${ name }`));
   });
 
-  const expectLines = (lines: string[]) => lines.forEach(expect(workflow.markup).toContain);
+  const expectLines = (lines: string[]) => lines.forEach(line =>
+    inside(workflow.markup).expect(line).toOccur(),
+  );
 
   const shouldMatch = expect(workflow.markup).toMatch;
 
   it('has the workflow tag', () => {
-    expectLines(['{workflow:name=Audit Workflow with Assigned Editing|label=workflow=internal-audit-record-editassign}',
-      '{workflow}']);
+    inside(workflow.markup).expect({ tagNamed: 'workflow' })
+      .toComeBefore({ name: 'Audit Workflow with Assigned Editing' })
+      .toComeBefore({ label: 'workflow=internal-audit-record-editassign' });
   });
+
   describe('States', () => {
     it('has the basic state tags', () => {
       expectLines(['{state:In Approval', '{state:In Progress', '{state:Published']);
