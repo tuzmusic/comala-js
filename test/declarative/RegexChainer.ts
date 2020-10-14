@@ -10,29 +10,37 @@ export default class RegexChainer {
   source: string;
   stored: string;
 
-  // and = this.reset;
-
   // these aliases are defined at the end of the file
   // because referring to the functions, defined below, gives
   // a TS error, despite the es-lint setting at the top.
   toHaveParam: StringFunc;
-  andHaveParam: StringFunc;
+  withParam: StringFunc;
+  andParam: StringFunc;
   toHaveChild: StringFunc;
   toInclude: StringFunc;
   andExpect: StringFunc;
   and: StringFunc;
+  private isNot: boolean;
 
   constructor() {
+    this.isNot = false;
     this.toHaveParam =
-      this.andHaveParam =
-        this.toHaveChild =  // todo: and check closing tag?
-          this.toInclude = this.toComeBefore;
+      this.withParam =
+        this.andParam =
+          this.toHaveChild =  // todo: and check closing tag?
+            this.toInclude = this.toComeBefore;
     this.andExpect =
       this.and = this.expect;
   };
 
-  get reset() {
+  get not() {
+    this.isNot = true;
+    return this;
+  }
+
+  private get reset() {
     this.stored = this.source = null;
+    this.isNot = false;
     return this;
   }
 
@@ -65,11 +73,12 @@ export default class RegexChainer {
   };
 
   expect = (args: FlexibleArgs) => {
+    this.isNot = false;
     this.stored = RegexChainer.getRelevantString(args);
     return this;
   };
 
-  toOccur = () => expect(this.source).toMatch(this.stored);
+  toOccur = () => expect(this.source.match(this.stored) === null).toBe(this.isNot);
 
   toComeBefore: StringFunc = args => {
     const { source, stored } = this;
@@ -78,7 +87,7 @@ export default class RegexChainer {
     const matchStr = `${ stored }.*${ RegexChainer.getRelevantString(args) }`;
     console.log(matchStr);
     const regExp = new RegExp(matchStr, 's');
-    expect(source).toMatch(regExp);
+    expect(source.match(regExp) === null).toBe(this.isNot);
 
     return this;
   };

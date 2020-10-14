@@ -43,10 +43,10 @@ export default class WorkflowCreator {
         // set who can assign
         const { allowedAssigners } = approvalObj;
         if (allowedAssigners) {
-          if (allowedAssigners.groups)
+          if (allowedAssigners.groups?.some(Boolean))
             approvalTag.addParameter({ allowedassigngroups: allowedAssigners.groups.join(',') });
-          if (allowedAssigners.users)
-            approvalTag.addParameter({ allowedassigngroups: allowedAssigners.users.join(',') });
+          if (allowedAssigners.users?.some(Boolean))
+            approvalTag.addParameter({ allowedassignusers: allowedAssigners.users.join(',') });
         }
 
         // handle tasks

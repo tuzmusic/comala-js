@@ -61,20 +61,6 @@ describe('createWorkflow', () => {
   });
 
   describe('Approvals', () => {
-    it('Designates who is allowed to assign approvers', () => {
-      inWorkflow.expect(approvals.Editing)
-        .toHaveParam({ allowedassigngroups: 'Internal Audit Managers' })
-        .and(approvals.Review)
-        .toHaveParam({ allowedassigngroups: 'Internal Audit Managers' });
-    });
-
-    it('Designates who is allowed to be assigned to approvals', () => {
-      inWorkflow.expect(approvals.Editing)
-        .toHaveParam({ selectedapprovers: 'Internal Audit Managers,Internal Audit Team' })
-        .and(states.InApproval)
-        .toHaveParam({ selectedapprovers: 'SLI Internal' });
-    });
-
     it('Creates the approval tags', () => {
       inWorkflow.expect(states.InProgress)
         .toHaveChild(approvals.Editing)
@@ -87,16 +73,38 @@ describe('createWorkflow', () => {
         .and(approvals.Review).toHaveParam({ rememberAssignees: true });
     });
 
+    it('Designates who is allowed to assign approvers', () => {
+      inWorkflow.expect(approvals.Editing)
+        .toHaveParam({ allowedassigngroups: 'Internal Audit Managers' })
+        .and(approvals.Review)
+        .toHaveParam({ allowedassigngroups: 'Internal Audit Managers' });
+    });
+
+    it('Leaves out empty array parameters', () => {
+      inWorkflow.expect(approvals.Editing).not.toInclude('allowedassignusers');
+    });
+
+    it('Designates who is allowed to be assigned to approvals', () => {
+      inWorkflow.expect(approvals.Editing)
+        .toHaveParam({ selectedapprovers: 'Internal Audit Managers,Internal Audit Team' })
+        .and(states.InApproval)
+        .toHaveParam({ selectedapprovers: 'SLI Internal' });
+    });
+
     describe('Tasks on approvals', () => {
       it('Adds the task in the approval', () => {
         inWorkflow.expect(approvals.Editing)
           .toHaveChild({ tagNamed: 'task' })
-          .toHaveParam({ name: 'Assign editors' })
-          .toHaveParam({ assignee: '@author@' })
+          .withParam({ name: 'Assign editors' })
+          .andParam({ assignee: '@author@' })
           .andExpect(approvals.Review)
           .toHaveChild({ tagNamed: 'task' })
-          .toHaveParam({ name: 'Assign reviewers' })
-          .toHaveParam({ assignee: '@author@' });
+          .withParam({ name: 'Assign reviewers' })
+          .andParam({ assignee: '@author@' });
+      });
+
+      xit('Completes the task when appropriate', () => {
+        // todo
       });
     });
   });
