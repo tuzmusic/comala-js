@@ -1,18 +1,28 @@
 import Tag from '../../Tag';
 
-type ApprovalObject = any
-
 const permissionsTypes = ['view', 'edit'];
+
 const userTypes = ['groups', 'users'];
 // type PermissionsType = 'view' | 'edit'
 type UserType = typeof userTypes[number]
 type PermissionsType = typeof permissionsTypes[number]
 type PermissionsObject = Record<UserType, string[]>
+type TaskObject = any;
+type ApprovalObject = {
+  name: string;
+  rememberAssignees?: boolean;
+  allowedAssigners: PermissionsObject;
+  allowedApprovers: PermissionsObject;
+  fastReject?: string; // name of state to reject to
+  reviewersCan?: Record<PermissionsType, boolean>;
+  tasks: TaskObject[];
+}
 
+type PermissionsGroup = Record<PermissionsType, PermissionsObject>;
 type StateObject = {
   name: string;
   approvals: ApprovalObject[];
-  permissions: Record<PermissionsType, PermissionsObject>;
+  permissions: PermissionsGroup;
 }
 
 type WorkflowObject = {
@@ -77,7 +87,15 @@ export default class WorkflowCreator {
     const { name: stateName, permissions } = stateObj;
     if (!permissions) return;
 
+    // prepare the trigger tag
     const triggerTag = new Tag('trigger', { _: 'statechanged', state: stateName });
+    // add the set-restrictions tags
+    this.addPermissionsToTrigger(permissions, triggerTag);
+    // add to workflow
+    this.triggers.push(triggerTag);
+  };
+
+  private addPermissionsToTrigger = (permissions: PermissionsGroup, triggerTag: Tag) => {
     permissionsTypes.forEach(type => {
       if (permissions[type]) {
         const tag = new Tag('set-restrictions', { type }, true);
@@ -91,23 +109,21 @@ export default class WorkflowCreator {
             .forEach(key =>
               tag.addParameter({ [key.slice(0, -1)]: permissions[type][key].join() }));
         }
-
         triggerTag.addChild(tag);
       }
     });
-    this.triggers.push(triggerTag);
   };
 
   private manageReviewerPermissions = (approvalObj: ApprovalObject, stateObj: StateObject) => {
     const { name: approvalName, reviewersCan } = approvalObj;
     if (!reviewersCan) return;
 
-    const assignedTrigger = new Tag('trigger', { _: 'pageapprovalassigned', approval: approvalObj });
-    ['view', 'edit'].forEach(key => {
+    const assignedTrigger = new Tag('trigger', { _: 'pageapprovalassigned', approval: approvalName });
+    permissionsTypes.forEach(key => {
       if (reviewersCan[key]) {
 
         // get the state's restrictions
-        const stateAllowed = stateObj.approvals.filter((a: ApprovalObject) => a.name === approvalName);
+        const statePermissions = stateObj.permissions;
 
       }
       // todo: If reviewers can't edit, let's see if we can do without setting the edit permissions;
