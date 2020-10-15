@@ -57,9 +57,9 @@ export default class RegexChainer {
 
       if (args.hasOwnProperty('tagNamed')) { // object with tagName property
         str = '{' + args.tagNamed + (args.unnamed ? `:${ args.unnamed }` : '');
-      } else { // object without tagName property. treat as an object of params
+      } else { // PARAMS: object without tagName property. treat as an object of params
         // todo: this currently only work for named parameters
-        str = ('[:|]' + Object.keys(args)[0].toLowerCase() + '=' + Object.values(args)[0]);
+        str = ('[:|]' + Object.keys(args)[0].toLowerCase() + '=' + Object.values(args)[0] + '[|}]');
       }
     }
     return str.replace(/([|=])/g, '\\$1');

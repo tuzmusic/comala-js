@@ -56,7 +56,7 @@ export const workflow = {
           },
           allowedApprovers: {
             groups: ['SLI Internal'],
-            users: [] as string[],
+            users: ['jt-audit-manager'],
           },
           tasks: [
             {

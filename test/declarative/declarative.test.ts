@@ -88,7 +88,7 @@ describe('createWorkflow', () => {
       inWorkflow.expect(approvals.Editing)
         .toHaveParam({ selectedapprovers: 'Internal Audit Managers,Internal Audit Team' })
         .and(states.InApproval)
-        .toHaveParam({ selectedapprovers: 'SLI Internal' });
+        .toHaveParam({ selectedapprovers: 'SLI Internal,jt-audit-manager' });
     });
 
     describe('Tasks on approvals', () => {

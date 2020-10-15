@@ -40,13 +40,21 @@ export default class WorkflowCreator {
         // some simple parameters
         addParamsFromObjectToTag(['rememberAssignees'], approvalObj, approvalTag);
 
+        const { allowedAssigners, allowedApprovers } = approvalObj;
+
         // set who can assign
-        const { allowedAssigners } = approvalObj;
         if (allowedAssigners) {
-          if (allowedAssigners.groups?.some(Boolean))
+          if (allowedAssigners.groups?.length)
             approvalTag.addParameter({ allowedassigngroups: allowedAssigners.groups.join(',') });
-          if (allowedAssigners.users?.some(Boolean))
+          if (allowedAssigners.users?.length)
             approvalTag.addParameter({ allowedassignusers: allowedAssigners.users.join(',') });
+        }
+
+        // set who can be assigned
+        if (allowedApprovers) {
+          const approvers: string[] = allowedApprovers.groups.concat(allowedApprovers.users);
+          if (approvers.length)
+            approvalTag.addParameter({ selectedapprovers: approvers.join(',') });
         }
 
         // handle tasks
