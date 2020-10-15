@@ -1,11 +1,11 @@
 import { workflow as workflowObj } from '../../src/declarative-api/createdWorkflow';
-import WorkflowCreator from '../../src/declarative-api/classes/WorkflowCreator';
+import WorkflowCreator, { WorkflowObject } from '../../src/declarative-api/classes/WorkflowCreator';
 import RegexChainer from './RegexChainer';
 
 const { inside } = new RegexChainer();
 
 describe('createWorkflow', () => {
-  const { workflow } = new WorkflowCreator(workflowObj);
+  const { workflow } = new WorkflowCreator(workflowObj as WorkflowObject);
 
   const states = {
     InProgress: { stateNamed: 'In Progress' },
@@ -57,13 +57,17 @@ describe('createWorkflow', () => {
             .toHaveChild({ tagNamed: 'set-restrictions' })
             .withParam({ type: 'view' })
             .andParam({ group: 'Internal Audit Managers,Internal Audit Team' })
-            .not.toInclude('|user=');
+          // .not.toInclude('|user=');
 
           inWorkflow.expect({ triggerNamed: 'statechanged' })
             .toHaveParam({ state: states.InProgress.stateNamed })
             .toHaveChild({ tagNamed: 'set-restrictions' })
             .withParam({ type: 'edit' })
             .andParam({ group: 'Internal Audit Managers,Internal Audit Team' });
+        });
+
+        it('Leaves out empty array parameters', () => {
+          inWorkflow.expect({ triggerNamed: 'statechanged' }).not.toInclude({ user: '' });
         });
 
         xit('Sets the permissions when we re-enter the state from a rejection.', () => {

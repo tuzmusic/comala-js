@@ -19,13 +19,14 @@ type ApprovalObject = {
 }
 
 type PermissionsGroup = Record<PermissionsType, PermissionsObject>;
+
 type StateObject = {
   name: string;
   approvals: ApprovalObject[];
   permissions: PermissionsGroup;
 }
 
-type WorkflowObject = {
+export type WorkflowObject = {
   name: string;
   label: string;
   states: StateObject[];
@@ -118,17 +119,22 @@ export default class WorkflowCreator {
     const { name: approvalName, reviewersCan } = approvalObj;
     if (!reviewersCan) return;
 
-    const assignedTrigger = new Tag('trigger', { _: 'pageapprovalassigned', approval: approvalName });
+    const approvalAssignedTrigger = new Tag('trigger', { _: 'pageapprovalassigned', approval: approvalName });
+
+    // make a copy of the state's permissions
+    const statePermissions = { ...stateObj.permissions };
+
+    // add reviewers to the state's permissions
     permissionsTypes.forEach(key => {
       if (reviewersCan[key]) {
-
-        // get the state's restrictions
-        const statePermissions = stateObj.permissions;
-
+        statePermissions[key].users.push('@approvalassignees@');
       }
       // todo: If reviewers can't edit, let's see if we can do without setting the edit permissions;
       // they'll stay as they already were. CHECK THIS IN COMALA.
     });
+
+    this.addPermissionsToTrigger(statePermissions, approvalAssignedTrigger);
+    this.triggers.push(approvalAssignedTrigger);
   };
 
   private processApproval = (approvalObj: ApprovalObject, stateObj: StateObject): Tag => {
