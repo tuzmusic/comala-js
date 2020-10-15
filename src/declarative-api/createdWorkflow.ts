@@ -1,6 +1,7 @@
 import { Event } from './api-constants';
+import { WorkflowObject } from './classes/WorkflowCreator';
 
-export const workflow = {
+export const workflow: WorkflowObject = {
   name: 'Audit Workflow with Assigned Editing',
   label: 'workflow=internal-audit-record-editassign',
   states: [
@@ -19,13 +20,13 @@ export const workflow = {
             groups: ['Internal Audit Managers', 'Internal Audit Team'],
             users: [] as string[],
           },
-          tasks: [
-            {
-              name: 'Assign editors',
-              assignee: '@author@',
-              completeOn: Event.reviewersAssigned('Audit Editing'),
-            },
-          ],
+        },
+      ],
+      tasks: [
+        {
+          name: 'Assign editors',
+          assignee: '@author@',
+          completeOn: Event.reviewersAssigned('Audit Editing'),
         },
       ],
       permissions: {
@@ -63,13 +64,13 @@ export const workflow = {
             view: true,
             edit: false,
           },
-          tasks: [
-            {
-              name: 'Assign reviewers',
-              assignee: '@author@',
-              completeOn: Event.reviewersAssigned('Audit Review'),
-            },
-          ],
+        },
+      ],
+      tasks: [
+        {
+          name: 'Assign reviewers',
+          assignee: '@author@',
+          completeOn: Event.reviewersAssigned('Audit Review'),
         },
       ],
       permissions: {
@@ -83,6 +84,12 @@ export const workflow = {
         },
       },
     },
-    { name: 'Published', final: true, hideSelection: true },
+    // Published permissions are the same as In Approval permissions
+    // so they don't need to be declared.
+    {
+      name: 'Published',
+      final: true,
+      hideSelection: true,
+    },
   ],
 };

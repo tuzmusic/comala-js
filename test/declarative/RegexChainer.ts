@@ -8,6 +8,11 @@ type FlexibleArgs =
 
 type StringFunc = (args: FlexibleArgs) => RegexChainer;
 
+// TODO: Checking children and params needs to make sure the search ends at
+// the right place. Otherwise all we're doing is checking if Y exists *anywhere*
+// after X. e.g., a child of tag Z could test positive as a child of tag X.
+// (where Z comes after X)
+
 export default class RegexChainer {
   source: string;
   stored: string;
