@@ -78,16 +78,27 @@ export default class RegexChainer {
     return this;
   };
 
-  toOccur = () => expect(this.source.match(this.stored) === null).toBe(this.isNot);
+  test = (str: string) => {
+    const { isNot, source } = this;
+    const regExp = new RegExp(str, 's');
+    if (isNot) {
+      expect(source).not.toMatch(regExp);
+    } else {
+      expect(source).toMatch(regExp);
+    }
+  };
+
+  toOccur = () => {
+    this.test(RegexChainer.getRelevantString(this.stored));
+    return this;
+  };
 
   toComeBefore: StringFunc = args => {
     const { source, stored } = this;
     if (!source || !stored) throw new Error('Arguments missing.');
 
     const matchStr = `${ stored }.*${ RegexChainer.getRelevantString(args) }`;
-    console.log(matchStr);
-    const regExp = new RegExp(matchStr, 's');
-    expect(source.match(regExp) === null).toBe(this.isNot);
+    this.test(matchStr);
 
     return this;
   };
