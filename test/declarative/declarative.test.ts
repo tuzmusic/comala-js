@@ -5,7 +5,7 @@ import RegexChainer from './RegexChainer';
 const { inside } = new RegexChainer();
 
 describe('createWorkflow', () => {
-  const workflow = WorkflowCreator.create(workflowObj);
+  const { workflow } = new WorkflowCreator(workflowObj);
   const stateLines: Record<string, string> = {};
   const approvalLines: Record<string, string> = {};
 

@@ -68,9 +68,9 @@ export default class Tag {
     return lines(markupLines);
   }
   
-  addTextContent(...textLines: string[]) { this.textLines = textLines; }
-  
-  addParameter(param: Record<string, string>) { Object.assign(this.parameters, param); }
-  
-  addChild(child: Tag) { this.children.push(child); }
+  addTextContent = (...textLines: string[]) => { this.textLines = textLines; };
+
+  addParameter = (param: Record<string, string>) => { Object.assign(this.parameters, param); };
+
+  addChild = (child: Tag) => { this.children.push(child); };
 }
