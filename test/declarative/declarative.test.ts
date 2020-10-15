@@ -65,6 +65,12 @@ describe('createWorkflow', () => {
             .withParam({ type: 'edit' })
             .andParam({ group: 'Internal Audit Managers,Internal Audit Team' });
         });
+
+        xit('Sets the permissions when we re-enter the state from a rejection.', () => {
+          // NOTE: We do need to do this because the 'statechanged' trigger
+          // is not activated by the fast-reject trigger (because statechanged
+          // doesn't fire in response to triggers).
+        });
       });
 
       describe('In Approval state', () => {
@@ -76,12 +82,31 @@ describe('createWorkflow', () => {
             .andParam({ group: 'Internal Audit Managers,Internal Audit Team' });
         });
 
-        it('Sets the edit permissions upon entering the state', () => {
+        it('Sets the edit permissions (no one!) upon entering the state', () => {
           inWorkflow.expect({ triggerNamed: 'statechanged' })
             .toHaveParam({ state: states.InApproval.stateNamed })
             .toHaveChild({ tagNamed: 'set-restrictions' })
             .withParam({ type: 'edit' })
             .andParam({ group: 'empty-group' });
+        });
+
+        describe('Reviewer permissions', () => {
+          it('Gives a reviewer view permissions when they are added', () => {
+            inWorkflow.expect({ triggerNamed: 'pageapprovalassigned' })
+              .toHaveParam({ approval: approvals.Review.approvalNamed })
+              .toHaveChild({ tagNamed: 'set-restrictions' })
+              .withParam({ type: 'edit' })
+              .andParam({ group: 'empty-group' });
+            inWorkflow.expect({ triggerNamed: 'pageapprovalassigned' })
+              .toHaveParam({ approval: approvals.Review.approvalNamed })
+              .toHaveChild({ tagNamed: 'set-restrictions' })
+              .withParam({ type: 'view' })
+              .andParam({ group: 'Internal Audit Managers,Internal Audit Team' })
+              .andParam({ user: '@approvalassignees@' });
+          });
+          it('Revokes a reviewer\'s view permissions when they are removed', () => {
+
+          });
         });
       });
     });

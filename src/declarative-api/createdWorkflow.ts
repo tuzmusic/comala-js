@@ -58,6 +58,11 @@ export const workflow = {
             groups: ['SLI Internal'],
             users: ['jt-audit-manager'],
           },
+          fastReject: 'In Progress', // name of state to reject to
+          reviewersCan: {
+            view: true,
+            edit: false,
+          },
           tasks: [
             {
               name: 'Assign reviewers',
@@ -67,7 +72,6 @@ export const workflow = {
           ],
         },
       ],
-      fastReject: true,
       permissions: {
         edit: {
           groups: [] as string[],
@@ -76,10 +80,6 @@ export const workflow = {
         view: {
           groups: ['Internal Audit Managers', 'Internal Audit Team'],
           users: [] as string[],
-        },
-        reviewers: {
-          canView: true,
-          canEdit: false,
         },
       },
     },

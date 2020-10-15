@@ -1,8 +1,25 @@
 import Tag from '../../Tag';
 
-type WorkflowObject = any
-type StateObject = any
 type ApprovalObject = any
+
+const permissionsTypes = ['view', 'edit'];
+const userTypes = ['groups', 'users'];
+// type PermissionsType = 'view' | 'edit'
+type UserType = typeof userTypes[number]
+type PermissionsType = typeof permissionsTypes[number]
+type PermissionsObject = Record<UserType, string[]>
+
+type StateObject = {
+  name: string;
+  approvals: ApprovalObject[];
+  permissions: Record<PermissionsType, PermissionsObject>;
+}
+
+type WorkflowObject = {
+  name: string;
+  label: string;
+  states: StateObject[];
+}
 
 function addParamsFromObjectToTag(camelCaseParams: string[], object: any, tag: Tag) {
   camelCaseParams.forEach(param => {
@@ -10,7 +27,6 @@ function addParamsFromObjectToTag(camelCaseParams: string[], object: any, tag: T
     if (val)
       tag.addParameter({ [param.toLowerCase()]: val });
   });
-
 }
 
 export default class WorkflowCreator {
@@ -41,48 +57,65 @@ export default class WorkflowCreator {
     // add the parameters for (simple) transitions
     const transitions = { 'onApproved': 'approved' };
     Object.entries(transitions).forEach(([key, value]) => {
-      const nextState = stateObj[key];
+      const nextState = stateObj[key as keyof StateObject];
       if (nextState)
-        stateTag.addParameter({ [value]: nextState });
+        stateTag.addParameter({ [value]: nextState as string });
     });
 
     // create the approvals
-    stateObj.approvals?.map(this.processApproval)
-      .forEach(stateTag.addChild);
+    stateObj.approvals?.map((approvalObj: ApprovalObject) =>
+      this.processApproval(approvalObj, stateObj),
+    ).forEach(stateTag.addChild);
 
     // set the state permissions
-    this.managePermissions(stateObj);
+    this.manageStatePermissions(stateObj);
 
     return stateTag;
   };
 
-  private managePermissions = (stateObj: StateObject) => {
+  private manageStatePermissions = (stateObj: StateObject) => {
     const { name: stateName, permissions } = stateObj;
-    if (permissions) {
-      const triggerTag = new Tag('trigger', { _: 'statechanged', state: stateName });
+    if (!permissions) return;
 
-      ['view', 'edit'].forEach(type => {
-        if (permissions[type]) {
-          const tag = new Tag('set-restrictions', { type }, true);
+    const triggerTag = new Tag('trigger', { _: 'statechanged', state: stateName });
+    permissionsTypes.forEach(type => {
+      if (permissions[type]) {
+        const tag = new Tag('set-restrictions', { type }, true);
 
-          // add empty-group, or add groups/users
-          if (['groups', 'users'].every(v => !permissions[type][v].length)) {
-            tag.addParameter({ group: 'empty-group' });
-          } else {
-            ['groups', 'users'].forEach(key => {
-              if (permissions[type][key].length)
-                tag.addParameter({ [key.slice(0, -1)]: permissions[type][key] });
-            });
-          }
-
-          triggerTag.addChild(tag);
+        // add empty-group, or add groups/users
+        if (userTypes.every(key => !permissions[type][key].length)) {
+          tag.addParameter({ group: 'empty-group' });
+        } else {
+          userTypes
+            .filter(key => permissions[type][key].length)
+            .forEach(key =>
+              tag.addParameter({ [key.slice(0, -1)]: permissions[type][key].join() }));
         }
-      });
-      this.triggers.push(triggerTag);
-    }
+
+        triggerTag.addChild(tag);
+      }
+    });
+    this.triggers.push(triggerTag);
   };
 
-  private processApproval = (approvalObj: ApprovalObject): Tag => {
+  private manageReviewerPermissions = (approvalObj: ApprovalObject, stateObj: StateObject) => {
+    const { name: approvalName, reviewersCan } = approvalObj;
+    if (!reviewersCan) return;
+
+    const assignedTrigger = new Tag('trigger', { _: 'pageapprovalassigned', approval: approvalObj });
+    ['view', 'edit'].forEach(key => {
+      if (reviewersCan[key]) {
+
+        // get the state's restrictions
+        const stateAllowed = stateObj.approvals.filter((a: ApprovalObject) => a.name === approvalName);
+
+      }
+      // todo: If reviewers can't edit, let's see if we can do without setting the edit permissions;
+      // they'll stay as they already were. CHECK THIS IN COMALA.
+    });
+  };
+
+  private processApproval = (approvalObj: ApprovalObject, stateObj: StateObject): Tag => {
     // create the basic approval tag
     const approvalTag = new Tag('approval', { _: approvalObj.name });
 
@@ -113,7 +146,7 @@ export default class WorkflowCreator {
       approvalTag.addChild(taskTag);
     } // for (task of tasks)
 
-    // stateTag.addChild(approvalTag);
+    this.manageReviewerPermissions(approvalObj, stateObj);
     return approvalTag;
   };
 }

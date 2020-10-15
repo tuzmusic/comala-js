@@ -1,8 +1,10 @@
 /* eslint @typescript-eslint/no-use-before-define: 0 */
 
+type NameableTags = 'stateNamed' | 'approvalNamed' | 'triggerNamed' | 'tagNamed'
+
 type FlexibleArgs =
   | string
-  | Record<string, string | boolean | number>;
+  | Record<string | NameableTags, string | boolean | number>;
 
 type StringFunc = (args: FlexibleArgs) => RegexChainer;
 
@@ -17,6 +19,7 @@ export default class RegexChainer {
   withParam: StringFunc;
   andParam: StringFunc;
   toHaveChild: StringFunc;
+  andHaveChild: StringFunc;
   toInclude: StringFunc;
   andExpect: StringFunc;
   and: StringFunc;
@@ -28,7 +31,8 @@ export default class RegexChainer {
       this.withParam =
         this.andParam =
           this.toHaveChild =  // todo: and check closing tag?
-            this.toInclude = this.toComeBefore;
+            this.andHaveChild =  // todo: and check closing tag?
+              this.toInclude = this.toComeBefore;
     this.andExpect =
       this.and = this.expect;
   };
