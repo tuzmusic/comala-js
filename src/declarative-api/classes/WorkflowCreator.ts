@@ -10,32 +10,64 @@ type PermissionsObject = Record<UserType, string[]>
 export type TaskObject = {
   name: string;
   assignee: string;
-  completeOn: (args: any) => Function;
+  // the values of Event return functions, yes.
+  // but when constructing a workflow, the function (that is a
+  // value of Event) is CALLED, so completeOn is simply a function.
+  completeOn: Function;
 };
 
 type ApprovalObject = {
+  /* Name of the approval. */
   name: string;
+  /* Should prior assignees be reassinged next time we enter this state?
+  *
+  * NB: I think I still haven't confirmed that assignees are not remembered
+  * between the same review on different pages, which the docs might imply. */
   rememberAssignees?: true;
+  /* Groups/Users who are allowed to assign approvers for this review. */
   allowedAssigners: PermissionsObject;
+  /* Groups/Users who are available to be assigned as approvers for this review. */
   allowedApprovers: PermissionsObject;
-  fastReject?: string; // name of state to reject to
+  // todo: this api might as well use onRejected, in combination with a fastReject boolean
+
+  /* If a single rejection should reject this review, this value is the name of the
+  * state to transition to on rejection. Its truthiness serves to "activate" fastReject. */
+  fastReject?: string;
+  /* Permissions for reviewers.
+  * Note that these permissions aren't "connected" to the approval or reviewers by Comala,
+  * but rather our markup explicitly sets permissions when approvers are assigned and unassigned,
+  * and when the review starts and ends. */
   reviewersCan?: Record<PermissionsType, boolean>;
 }
 
 type PermissionsGroup = Record<PermissionsType, PermissionsObject>;
 
 type StateObject = {
+  /* Name of the state */
   name: string;
+  /* Approvals included in this state.
+  *
+  *  Note that approvals don't do anything without 'onApproved' or 'onRejected'. */
   approvals?: ApprovalObject[];
+  /* Tasks that are assigned when the state is entered. */
   tasks?: TaskObject[];
+  /* Edit and view permissions for this state.
+  *
+  * Note that these permissions aren't "connected" to the state by Comala,
+  * but rather our markup explicitly sets permissions on relevant actions. */
   permissions?: PermissionsGroup;
+  /* The state to transition to when all approvals pass. */
   onApproved?: string;
+  /* Whether the state is the final state in the workflow. */
   final?: true;
+  /* If `true`, users cannot select another state from this state. */
   hideSelection?: true;
 }
 
 export type WorkflowObject = {
+  /* Name for the worklfow. */
   name: string;
+  /* Pages (in this space) with this label will be controlled by the workflow. */
   label: string;
   states: StateObject[];
 }
@@ -52,9 +84,13 @@ function addParamsFromObjectToTag(camelCaseParams: string[], object: any, tag: T
 
 export default class WorkflowCreator {
   workflow: Tag;
-  // states: Record<string, Tag> = {};
-  // approvals: Record<string, Tag> = {};
   states: Tag[] = [];
+  /* Trigger tags, which are added after state tags.
+  *
+  * Note that there is no "triggers" property in the WorkflowObject argument to the constructor. Rather,
+  * triggers are created based on settings of states, approvals, tasks, etc. Indeed, this is a large
+  * reason for creating the API: to abstract the imperative triggers, using object declaration to indicate,
+  * in context, what should happen when. */
   triggers: Tag[] = [];
 
   constructor(obj: WorkflowObject) {
@@ -68,13 +104,11 @@ export default class WorkflowCreator {
     console.log(workflow.markup);
   };
 
-  findTriggerWithParam(triggerType: string, paramKey: string, paramValue: string) {
-    const statePermissionTrigger = this.triggers.find(
-      tag => tag.parameters['_'] === triggerType
-        && tag.parameters[paramKey] === paramValue,
+  // must be public so it can be used from the Event functions.
+  public findTriggerWithParam = (triggerType: string, paramKey: string, paramValue: string) =>
+    this.triggers.find(tag => tag.parameters['_'] === triggerType
+      && tag.parameters[paramKey] === paramValue,
     );
-    return statePermissionTrigger;
-  }
 
   private processState = (stateObj: StateObject): Tag => {
     // create the basic state tag
@@ -104,9 +138,11 @@ export default class WorkflowCreator {
       const { name, assignee, completeOn } = task;
       const taskTag = new Tag('task', { name, assignee }, true);
 
-      if (completeOn) {
-        completeOn.call(this, task);
-      }
+      // completeOn is a function that finds or creates a trigger, adds
+      // a complete-task tag to it, and adds the trigger to the WorkflowCreator.
+      // It would be nice if it read a bit more semantically here, but it's more
+      // desirable to have it read semantically when constructing the WorkflowObject.
+      completeOn?.call(this, task);
 
       stateTag.addChild(taskTag);
     }); // for (task of tasks)

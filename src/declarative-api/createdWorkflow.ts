@@ -38,10 +38,6 @@ export const workflow: WorkflowObject = {
           groups: ['Internal Audit Managers', 'Internal Audit Team'],
           users: [] as string[],
         },
-        /*reviewers: {
-          canView: true,
-          canEdit: false,
-        },*/
       },
     },
     {

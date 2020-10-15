@@ -2,8 +2,7 @@ import Tag from '../Tag';
 import WorkflowCreator, { TaskObject } from './classes/WorkflowCreator';
 
 export const Event: Record<string, (args: any) => Function> = {
-
-  reviewersAssigned(approvalName: string) {
+  reviewersAssigned(approvalName: string): Function {
     // BIND WHEN CALLED
     return function (this: WorkflowCreator, task: TaskObject) {
       // find the right trigger
