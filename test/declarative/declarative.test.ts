@@ -66,7 +66,7 @@ describe('createWorkflow', () => {
             .andParam({ group: 'Internal Audit Managers,Internal Audit Team' });
         });
 
-        it('Leaves out empty array parameters', () => {
+        xit('Leaves out empty array parameters', () => {
           inWorkflow.expect({ triggerNamed: 'statechanged' }).not.toInclude({ user: '' });
         });
 
@@ -109,7 +109,17 @@ describe('createWorkflow', () => {
               .andParam({ user: '@approvalassignees@' });
           });
           it('Revokes a reviewer\'s view permissions when they are removed', () => {
-
+            inWorkflow.expect({ triggerNamed: 'approvalunassigned' })
+              .toHaveParam({ approval: approvals.Review.approvalNamed })
+              .toHaveChild({ tagNamed: 'set-restrictions' })
+              .withParam({ type: 'edit' })
+              .andParam({ group: 'empty-group' });
+            inWorkflow.expect({ triggerNamed: 'approvalunassigned' })
+              .toHaveParam({ approval: approvals.Review.approvalNamed })
+              .toHaveChild({ tagNamed: 'set-restrictions' })
+              .withParam({ type: 'view' })
+              .andParam({ group: 'Internal Audit Managers,Internal Audit Team' })
+              .andParam({ user: '@approvalassignees@' });
           });
         });
       });

@@ -118,8 +118,10 @@ export default class WorkflowCreator {
   private manageReviewerPermissions = (approvalObj: ApprovalObject, stateObj: StateObject) => {
     const { name: approvalName, reviewersCan } = approvalObj;
     if (!reviewersCan) return;
-
-    const approvalAssignedTrigger = new Tag('trigger', { _: 'pageapprovalassigned', approval: approvalName });
+    const triggers = [
+      new Tag('trigger', { _: 'pageapprovalassigned', approval: approvalName }),
+      new Tag('trigger', { _: 'approvalunassigned', approval: approvalName }),
+    ];
 
     // make a copy of the state's permissions
     const statePermissions = { ...stateObj.permissions };
@@ -129,12 +131,15 @@ export default class WorkflowCreator {
       if (reviewersCan[key]) {
         statePermissions[key].users.push('@approvalassignees@');
       }
-      // todo: If reviewers can't edit, let's see if we can do without setting the edit permissions;
-      // they'll stay as they already were. CHECK THIS IN COMALA.
     });
 
-    this.addPermissionsToTrigger(statePermissions, approvalAssignedTrigger);
-    this.triggers.push(approvalAssignedTrigger);
+    ['pageapprovalassigned', 'approvalunassigned']
+      .forEach(name => {
+          const trigger = new Tag('trigger', { _: name, approval: approvalName });
+          this.addPermissionsToTrigger(statePermissions, trigger);
+          this.triggers.push(trigger);
+        },
+      );
   };
 
   private processApproval = (approvalObj: ApprovalObject, stateObj: StateObject): Tag => {
