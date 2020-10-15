@@ -49,7 +49,7 @@ export default class RegexChainer {
     if (typeof args === 'string') { // string
       str = args as string;
     } else {
-      ['state', 'approval', 'task'].forEach(name => {
+      ['state', 'approval', 'trigger'].forEach(name => {
         const key = name + 'Named';
         const value = (args as { [key: string]: string })[key];
         if (value) args = { tagNamed: name, unnamed: value };

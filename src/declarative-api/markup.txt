@@ -27,6 +27,11 @@
         {complete-task:task=Assign editors}
     {trigger}
 
+    {trigger:statechanged|state=In Progress}
+        {set-restrictions:type=view|group=Internal Audit Managers,Internal Audit Team}
+        {set-restrictions:type=edit|group=Internal Audit Managers,Internal Audit Team}
+    {trigger}
+
     {trigger:statechanged|state=In Approval}
         {set-restrictions:type=edit|group=empty-group}
     {trigger}

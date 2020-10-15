@@ -6,18 +6,6 @@ const { inside } = new RegexChainer();
 
 describe('createWorkflow', () => {
   const { workflow } = new WorkflowCreator(workflowObj);
-  const stateLines: Record<string, string> = {};
-  const approvalLines: Record<string, string> = {};
-
-  ['In Progress', 'In Approval', 'Published'].forEach(name => {
-    stateLines[name.split(' ').pop().toLowerCase()]
-      = workflow.markup.split('\n').find(l => l.includes(`{state:${ name }`));
-  });
-
-  ['Audit Review', 'Audit Editing'].forEach(name => {
-    approvalLines[name.split(' ').pop().toLowerCase()]
-      = workflow.markup.split('\n').find(l => l.includes(`{approval:${ name }`));
-  });
 
   const states = {
     InProgress: { stateNamed: 'In Progress' },
@@ -29,7 +17,6 @@ describe('createWorkflow', () => {
     Review: { approvalNamed: 'Audit Review' },
   };
 
-  const shouldMatch = expect(workflow.markup).toMatch;
   const inWorkflow = inside(workflow.markup);
 
   it('has the workflow tag', () => {
@@ -57,6 +44,46 @@ describe('createWorkflow', () => {
       inWorkflow.expect(states.Published)
         .toHaveParam({ final: 'true' })
         .toHaveParam({ hideSelection: 'true' });
+    });
+
+    describe('Permissions', () => {
+      test('Permissions tags are self-closing', () => {
+        inWorkflow.expect('{set-restrictions}').not.toOccur();
+      });
+      describe('In Progress state', () => {
+        it('Sets the permissions upon entering the state', () => {
+          inWorkflow.expect({ triggerNamed: 'statechanged' })
+            .toHaveParam({ state: states.InProgress.stateNamed })
+            .toHaveChild({ tagNamed: 'set-restrictions' })
+            .withParam({ type: 'view' })
+            .andParam({ group: 'Internal Audit Managers,Internal Audit Team' })
+            .not.toInclude('|user=');
+
+          inWorkflow.expect({ triggerNamed: 'statechanged' })
+            .toHaveParam({ state: states.InProgress.stateNamed })
+            .toHaveChild({ tagNamed: 'set-restrictions' })
+            .withParam({ type: 'edit' })
+            .andParam({ group: 'Internal Audit Managers,Internal Audit Team' });
+        });
+      });
+
+      describe('In Approval state', () => {
+        it('Sets the view permissions upon entering the state', () => {
+          inWorkflow.expect({ triggerNamed: 'statechanged' })
+            .toHaveParam({ state: states.InApproval.stateNamed })
+            .toHaveChild({ tagNamed: 'set-restrictions' })
+            .withParam({ type: 'view' })
+            .andParam({ group: 'Internal Audit Managers,Internal Audit Team' });
+        });
+
+        it('Sets the edit permissions upon entering the state', () => {
+          inWorkflow.expect({ triggerNamed: 'statechanged' })
+            .toHaveParam({ state: states.InApproval.stateNamed })
+            .toHaveChild({ tagNamed: 'set-restrictions' })
+            .withParam({ type: 'edit' })
+            .andParam({ group: 'empty-group' });
+        });
+      });
     });
   });
 
@@ -101,6 +128,10 @@ describe('createWorkflow', () => {
           .toHaveChild({ tagNamed: 'task' })
           .withParam({ name: 'Assign reviewers' })
           .andParam({ assignee: '@author@' });
+      });
+
+      test('Tasks are self-closing', () => {
+        inWorkflow.expect('{task}').not.toOccur();
       });
 
       xit('Completes the task when appropriate', () => {

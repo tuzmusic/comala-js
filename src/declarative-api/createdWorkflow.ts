@@ -72,7 +72,8 @@ export const workflow = {
         edit: {
           groups: [] as string[],
           users: [] as string[],
-        }, view: {
+        },
+        view: {
           groups: ['Internal Audit Managers', 'Internal Audit Team'],
           users: [] as string[],
         },
