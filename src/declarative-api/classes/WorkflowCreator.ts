@@ -140,7 +140,7 @@ export default class WorkflowCreator {
   
   private processApproval = (approvalObj: ApprovalObject, stateObj: StateObject): Tag => {
     // create the basic approval tag
-    const approvalTag = new Tag('approval', { _: approvalObj.name });
+    const approvalTag = new Tag('approval', { _: approvalObj.name }, true);
     
     // some simple parameters
     addParamsFromObjectToTag(['rememberAssignees'], approvalObj, approvalTag);

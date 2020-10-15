@@ -1,11 +1,13 @@
 import { workflow as workflowObj } from '../../src/declarative-api/createdWorkflow';
 import WorkflowCreator, { WorkflowObject } from '../../src/declarative-api/classes/WorkflowCreator';
 import RegexChainer from './RegexChainer';
+import * as fs from 'fs';
+import path from 'path';
 
 const { inside } = new RegexChainer();
+const { workflow } = new WorkflowCreator(workflowObj as WorkflowObject);
 
 describe('createWorkflow', () => {
-  const { workflow } = new WorkflowCreator(workflowObj as WorkflowObject);
   
   const states = {
     InProgress: { stateNamed: 'In Progress' },
@@ -139,12 +141,16 @@ describe('createWorkflow', () => {
         .and(states.InApproval)
         .toHaveChild(approvals.Review);
     });
-    
+  
+    test('Approvals are self-closing', () => {
+      inWorkflow.expect('{approval}').not.toOccur();
+    });
+  
     it('adds simple parameters to the approval tag', () => {
       inWorkflow.expect(approvals.Editing).toHaveParam({ rememberAssignees: true })
         .and(approvals.Review).toHaveParam({ rememberAssignees: true });
     });
-    
+  
     it('Designates who is allowed to assign approvers', () => {
       inWorkflow.expect(approvals.Editing)
         .toHaveParam({ allowedassigngroups: 'Internal Audit Managers' })
@@ -163,17 +169,11 @@ describe('createWorkflow', () => {
         .toHaveParam({ selectedapprovers: 'SLI Internal,jt-audit-manager' });
     });
     
-    /*
-    *  {trigger:pagerejected|approval=Audit Review|partial=true}
-      {set-state:In Progress}
-      {set-restrictions:type=view|group=Internal Audit Managers,Internal Audit Team}
-      {set-restrictions:type=edit|group=Internal Audit Managers,Internal Audit Team}
-  {trigger}*/
     it('Defines fast-track rejections', () => {
       inWorkflow.expect({ triggerNamed: 'pagerejected' })
         .toHaveParam({ approval: approvals.Review.approvalNamed })
         .andParam({ partial: 'true' })
-        .toInclude('{set-state:In Progress}')
+        .toInclude('{set-state:In Progress}');
     });
     
     it('Restores permissions on fast-tracked rejections', () => {
@@ -181,12 +181,12 @@ describe('createWorkflow', () => {
         .toHaveParam({ approval: approvals.Review.approvalNamed })
         .toHaveChild({ tagNamed: 'set-restrictions' })
         .withParam({ type: 'edit' })
-        .andParam({ group: 'Internal Audit Managers,Internal Audit Team' })
+        .andParam({ group: 'Internal Audit Managers,Internal Audit Team' });
       inWorkflow.expect({ triggerNamed: 'pagerejected' })
         .toHaveParam({ approval: approvals.Review.approvalNamed })
         .toHaveChild({ tagNamed: 'set-restrictions' })
         .withParam({ type: 'view' })
-        .andParam({ group: 'Internal Audit Managers,Internal Audit Team' })
+        .andParam({ group: 'Internal Audit Managers,Internal Audit Team' });
     });
     
     describe('Tasks on approvals', () => {
@@ -209,5 +209,17 @@ describe('createWorkflow', () => {
         // todo
       });
     });
+  });
+});
+
+describe('Full markup', () => {
+  const workflowLines = workflow.markup.split('\n');
+  const filePath = path.join(__dirname, '../../src/declarative-api/markup.txt');
+  const file = fs.readFileSync(filePath, 'utf8');
+  const markupLines = file.split('\n');
+  
+  markupLines.forEach(line => {
+    console.log(line);
+    expect(workflow.markup).toMatch(line.trim());
   });
 });
