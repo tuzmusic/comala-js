@@ -10,7 +10,7 @@ test('test works', () => {
 */
 
 describe('real tag testing', () => {
-  describe('expect/storeRelevantInfo', () => {
+  describe('Inner method: expect/storeRelevantInfo', () => {
     const source = inside('whatever');
     test('type: string', () => {
       source.expect('string');
@@ -19,11 +19,11 @@ describe('real tag testing', () => {
   
     test('known tag', () => {
       source.expect({ stateNamed: 'state1' });
-      expect(chainer.stored).toEqual({ type: 'known-tag', content: { state: { name: 'state1' } } });
+      expect(chainer.stored).toEqual({ type: 'known-tag', content: { tagType: 'state', name: 'state1' } });
       source.expect({ approvalNamed: 'approval1' });
-      expect(chainer.stored).toEqual({ type: 'known-tag', content: { approval: { name: 'approval1' } } });
+      expect(chainer.stored).toEqual({ type: 'known-tag', content: { tagType: 'approval', name: 'approval1' } });
       source.expect({ triggerNamed: 'trigger1' });
-      expect(chainer.stored).toEqual({ type: 'known-tag', content: { trigger: { name: 'trigger1' } } });
+      expect(chainer.stored).toEqual({ type: 'known-tag', content: { tagType: 'trigger', name: 'trigger1' } });
     });
     
     test('unknown tag', () => {
@@ -39,11 +39,11 @@ describe('real tag testing', () => {
   
   test('params', () => {
     const source =
-      '{state:Name1|param1=value1}' +
-      '{state}' +
-      '{state:Name2|param2=value2}' +
-      '{state}';
-    
+      ['{state:Name1|param1=value1}',
+        '{state}',
+        '{state:Name2|param2=value2}',
+        '{state}'].join('\n');
+  
     inside(source).expect({ stateNamed: 'Name1' }).toHaveParam({ param1: 'value1' });
     // the most important! make sure a param from a later tag doesn't give a false positive
     inside(source).expect({ stateNamed: 'Name1' }).not.toHaveParam({ param2: 'value2' });
@@ -51,7 +51,48 @@ describe('real tag testing', () => {
     inside(source).expect({ stateNamed: 'Name2' }).toHaveParam({ param2: 'value2' });
   });
   
-  // describe('children', () => {
-  //
-  // });
+  test('params can not be checked without a tag for context', () => {
+    expect.assertions(1); // will fail if assertion isn't made in the catch block
+    try {
+      inside('whatever').expect({ someParam: 'Name2' }).toHaveParam({ param2: 'value2' });
+    } catch (e) {
+      expect(true).toEqual(true);
+    }
+  });
+  
+  describe('children', () => {
+    test('children cannot be checked on self-closing tags', () => {
+      expect.assertions(1); // will fail if assertion isn't made in the catch block
+      try {
+        inside('whatever').expect({ approvalNamed: 'Name2' }).toHaveChild({ tagNamed: 'task' });
+      } catch (e) {
+        expect(true).toEqual(true);
+      }
+    });
+    
+    test('expecting a non-self-closing child fails with some message', () => {
+      expect.assertions(1); // will fail if assertion isn't made in the catch block
+      try {
+        inside('whatever').expect({ stateNamed: 'Name2' }).toHaveChild({ triggerNamed: 'Trigger1' });
+      } catch (e) {
+        expect(true).toEqual(true);
+      }
+    });
+    
+    test('toHaveChild', () => {
+      expect.assertions(4)
+      const source = [
+        '{state:State1}',
+        '\t{approval:Approval1}',
+        '{state}',
+        '{trigger:Trigger1}',
+        '\t{task:name=Something}',
+        '{trigger}'].join('\n');
+      inside(source).expect({ stateNamed: 'State1' }).toHaveChild({ approvalNamed: 'Approval1' });
+      inside(source).expect({ stateNamed: 'State1' }).not.toHaveChild({ tagNamed: 'task' });
+      inside(source).expect({ triggerNamed: 'Trigger1' }).toHaveChild({ tagNamed: 'task' });
+      inside(source).expect({ triggerNamed: 'Trigger1' }).not.toHaveChild({ approvalNamed: 'Approval1' });
+    });
+    
+  });
 });
