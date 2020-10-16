@@ -1,4 +1,6 @@
 //region Types
+import State from '../Macros/InUse/State';
+
 export const permissionsTypes = ['view', 'edit'];
 export const userTypes = ['groups', 'users'];
 export type UserType = typeof userTypes[number]
@@ -66,6 +68,7 @@ export type StateObject = {
   final?: true;
   /* If `true`, users cannot select another state from this state. */
   hideSelection?: true;
+  otherParams?: Partial<State>;
 }
 
 export type WorkflowObject = {

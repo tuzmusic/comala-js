@@ -71,7 +71,7 @@ export default class RegexChainer {
         str = ('[:|]' + Object.keys(args)[0].toLowerCase() + '=' + Object.values(args)[0] + '[|}]');
       }
     }
-    return str.replace(/([|=])/g, '\\$1');
+    return str;
   }
 
   inside = (s: string) => {

@@ -1,16 +1,16 @@
-import Tag from './Tag'
+import Tag from '../../Tag';
 
-class State extends Tag {
-	/**
-	 * @type {string}
-	 * This parameter is REQUIRED.
-	 * <p>Name of the workflow state:</p><ul><li>Within a <strong><code>{workflow}</code></strong> macro, each <strong><code>{state}</code></strong> macro must be given a unique name</li><li>The name can use any character set supported by your Confluence server &#x2013; except some <a href="/display/CDML/Reserved+Characters">reserved characters</a>.</li></ul><p>In addition to being used for <a href="/display/CDML/Transitions">transitions</a>, <a href="/display/CDML/Events">event</a> <a href="/display/CDML/trigger+macro">triggers</a>, etc., the state name is also shown in many aspects of the <a href="/display/CDML/User+Guide">user interface</a> and <a href="/display/CDML/Reporting+Guide">reporting</a>.</p>
-	 */
-	name: string;
-
-	/**
-	 * @type {string}
-	 * <div class="content-wrapper"><p>Can be empty, or one or more of the following macros:</p><p></p><ul class="content-by-label conf-macro output-block" data-hasbody="false" data-macro-name="contentbylabel"> <li> <div> <span class="icon aui-icon content-type-page" title="Page">Page:</span> </div> <div class="details"> <a href="/display/CDML/approval+macro">approval macro</a> <span class="smalltext">&#x2014; Add content-focussed reviews to states</span> </div> </li> <li> <div> <span class="icon aui-icon content-type-page" title="Page">Page:</span> </div> <div class="details"> <a href="/display/CDML/state-selection+macro">state-selection macro</a> <span class="smalltext">&#x2014; Specify direct state transitions</span> </div> </li> <li> <div> <span class="icon aui-icon content-type-page" title="Page">Page:</span> </div> <div class="details"> <a href="/display/CDML/task+macro">task macro</a> <span class="smalltext">&#x2014; Add tasks to workflow states</span> </div> </li> </ul><p></p></div>
+export default class State extends Tag {
+  /**
+   * @type {string}
+   * This parameter is REQUIRED.
+   * <p>Name of the workflow state:</p><ul><li>Within a <strong><code>{workflow}</code></strong> macro, each <strong><code>{state}</code></strong> macro must be given a unique name</li><li>The name can use any character set supported by your Confluence server &#x2013; except some <a href="/display/CDML/Reserved+Characters">reserved characters</a>.</li></ul><p>In addition to being used for <a href="/display/CDML/Transitions">transitions</a>, <a href="/display/CDML/Events">event</a> <a href="/display/CDML/trigger+macro">triggers</a>, etc., the state name is also shown in many aspects of the <a href="/display/CDML/User+Guide">user interface</a> and <a href="/display/CDML/Reporting+Guide">reporting</a>.</p>
+   */
+  name: string;
+  
+  /**
+   * @type {string}
+   * <div class="content-wrapper"><p>Can be empty, or one or more of the following macros:</p><p></p><ul class="content-by-label conf-macro output-block" data-hasbody="false" data-macro-name="contentbylabel"> <li> <div> <span class="icon aui-icon content-type-page" title="Page">Page:</span> </div> <div class="details"> <a href="/display/CDML/approval+macro">approval macro</a> <span class="smalltext">&#x2014; Add content-focussed reviews to states</span> </div> </li> <li> <div> <span class="icon aui-icon content-type-page" title="Page">Page:</span> </div> <div class="details"> <a href="/display/CDML/state-selection+macro">state-selection macro</a> <span class="smalltext">&#x2014; Specify direct state transitions</span> </div> </li> <li> <div> <span class="icon aui-icon content-type-page" title="Page">Page:</span> </div> <div class="details"> <a href="/display/CDML/task+macro">task macro</a> <span class="smalltext">&#x2014; Add tasks to workflow states</span> </div> </li> </ul><p></p></div>
 	 */
 	body: string;
 
