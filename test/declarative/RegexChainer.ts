@@ -1,14 +1,16 @@
 /* eslint @typescript-eslint/no-use-before-define: 0 */
 
 type NameableTags = 'stateNamed' | 'approvalNamed' | 'triggerNamed' | 'tagNamed'
-
 type FlexibleArgs =
   | string
-  | Record<string | NameableTags, string | boolean | number>;
-
+  | Record<NameableTags, string>
+  | Record<string, string | boolean | number>
 type StringFunc = (args: FlexibleArgs) => RegexChainer;
 
-type TagInfo = { [tagType: string]: { name: string } | null }
+const knownTags = ['state', 'approval', 'trigger'];
+type KnownTagType = typeof knownTags[number];
+type TagInfo = Record<KnownTagType, { name: string }>
+//{ [tagType: typeof knownTags[number]]: { name: string } }
 
 // TODO: Checking children and params needs to make sure the search ends at
 // the right place. Otherwise all we're doing is checking if Y exists *anywhere*
@@ -18,14 +20,15 @@ type TagInfo = { [tagType: string]: { name: string } | null }
 export default class RegexChainer {
   source: string;
   stored = {} as
-    { type: 'tag'; content: TagInfo }
+    { type: 'known-tag'; content: TagInfo }
     | { type: 'param'; content: object }
+    | { type: 'unknown-tag-name'; content: string }
     | { type: 'string'; content: string }
   
   // these aliases are defined at the end of the file
   // because referring to the functions, defined below, gives
   // a TS error, despite the es-lint setting at the top.
-  toHaveParam: StringFunc;
+  // toHaveParam: StringFunc;
   withParam: StringFunc;
   andParam: StringFunc;
   toHaveChild: StringFunc;
@@ -52,9 +55,40 @@ export default class RegexChainer {
     return this;
   }
   
+  toHaveParam = (param: Record<string, string>) => {
+    const { stored } = this;
+    const [key, value] = Object.entries(param)[0];
+    const paramRegExStr = new RegExp(
+      prepareForRegex(`[|:${ key }]=${ value }`)
+    );
+    
+    let tagRegExpStr: string;
+    
+    if (stored.type === 'unknown-tag-name') {
+      tagRegExpStr = `${ stored.content }`;
+    } else if (stored.type === 'known-tag') {
+      const [tagName, { name }] = Object.entries(stored.content)[0];
+      tagRegExpStr = `${ tagName }:${ name }`;
+    }
+    // test for a string containing the tag opener (opening bracket, tag name, unnamed arg)
+    // and the param, and ending with a closing bracket.
+    // i.e., the param occurs inside the tag.
+    test(`{${ tagRegExpStr }.+${ paramRegExStr }.*}`);
+  }
+  
+  test = (str: string) => {
+    const { isNot, source } = this;
+    const regExp = new RegExp(prepareForRegex(str), 's');
+    if (isNot) {
+      expect(source).not.toMatch(regExp);
+    } else {
+      expect(source).toMatch(regExp);
+    }
+  };
+  
   expect = (args: FlexibleArgs) => {
     this.isNot = false;
-    this.getRelevantString(args);
+    this.storeRelevantInfo(args);
     return this;
   };
   
@@ -65,35 +99,32 @@ export default class RegexChainer {
     return this;
   };
   
-  test = (str: string) => {
-    const { isNot, source } = this;
-    const regExp = new RegExp(str, 's');
-    if (isNot) {
-      expect(source).not.toMatch(regExp);
-    } else {
-      expect(source).toMatch(regExp);
-    }
-  };
-  
-  private getRelevantString(args: FlexibleArgs): void {
+  private storeRelevantInfo(args: FlexibleArgs): void {
     // handle simple string argument
     if (typeof args === 'string') { // string
       this.stored = { type: 'string', content: prepareForRegex(args) };
       return;
     }
     
+    if (args.tagNamed) {
+      this.stored = { type: 'unknown-tag-name', content: args.tagNamed as string };
+      return;
+    }
+    
     // handle specific tags
-    for (const typeOfTag of ['state', 'approval', 'trigger', 'tag']) {
+    for (const typeOfTag of knownTags) {
       const key = typeOfTag + 'Named';
       // check if this is the key
       const value: string = (args as Record<string, string>)[key];
       if (value) {
         // tagNamed: 'xyz' is {xyz...
         // stateNamed: 'abc" is {state:abc
-        const content = typeOfTag === 'tag'
-          ? { [value]: { name: null } }
-          : { [typeOfTag]: { name: value } };
-        this.stored = { type: 'tag', content };
+        this.stored = {
+          type: 'known-tag',
+          content: {
+            [typeOfTag]: { name: value }
+          }
+        };
         return;
       }
     }
@@ -111,7 +142,7 @@ export default class RegexChainer {
   }
   
   /*  toOccur = () => {
-      this.test(RegexChainer.getRelevantString(this.stored));
+      this.test(RegexChainer.storeRelevantInfo(this.stored));
       return this;
     };
     
@@ -119,7 +150,7 @@ export default class RegexChainer {
       const { source, stored } = this;
       if (!source || !stored) throw new Error('Arguments missing.');
       
-      const matchStr = `${ stored }.*${ RegexChainer.getRelevantString(args) }`;
+      const matchStr = `${ stored }.*${ RegexChainer.storeRelevantInfo(args) }`;
       this.test(matchStr);
       
       return this;
@@ -129,7 +160,7 @@ export default class RegexChainer {
       const { stored } = this;
       if (!stored) throw new Error('Arguments missing.');
       const oldStored = stored;
-      this.stored = RegexChainer.getRelevantString(args);
+      this.stored = RegexChainer.storeRelevantInfo(args);
       this.toComeBefore(oldStored);
       
       return this;
