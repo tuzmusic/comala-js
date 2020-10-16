@@ -261,15 +261,33 @@ describe('New Features', () => {
         otherParams: { colour: '#4A6785' }
       }]
     })).workflow;
-    
+  
     inside(workflow.markup).expect({ colour: '#4A6785' }).toOccur();
   });
   
-  xit('Supports the user param in Approvals (not just selecteduser)', () => {
+  it('Supports otherParams in approvals', () => {
+    const workflow = new WorkflowCreator(({
+      name: 'whatever', label: 'whatever',
+      states: [{
+        name: 'first state',
+        otherParams: { colour: '#4A6785' },
+        approvals: [
+          { name: 'first approval', otherParams: { user: '&@author' } }
+        ]
+      }]
+    })).workflow;
     
+    inside(workflow.markup).expect({ user: '&@author' }).toOccur();
   });
   
-  xit('Supports auto-assigned approvers', () => {
-    
-  });
+  // TODO: It doesn't seem urgent to distinguish these.
+  // selectedapprover: must select ONE from these (users/groups)
+  // selectedapprovers: must select ONE OR MORE from these (users/groups)
+  // user/group: approvers MAY include these
+  it.todo('Supports the user param in Approvals (not just selecteduser)');
+  
+  // TODO: this isn't so urgent given that we can use otherParams
+  //  It's annoying because it may require rejiggering the type
+  //  of allowedApprovers. Not worth the trouble.
+  it.todo('Supports auto-assigned approvers');
 });

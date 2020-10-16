@@ -45,10 +45,10 @@ class Approval extends Tag {
 	exclude: string;
 
 	/**
-	 * @type {string}
-	 * <div class="content-wrapper"><p>Reviewers must be a member of the specified user group(s):</p><ul><li>A comma-separated list of group names<sup>&#x2021;</sup></li><li>Supports <a href="/display/CDML/Value+References">Value References</a></li></ul><p><span>Note: Users who do not have </span><a href="/display/CDML/Roles+and+Permissions">Edit content permission</a><span> will not be allowed to review.</span></p><p></p><ul class="content-by-label conf-macro output-block" data-hasbody="false" data-macro-name="contentbylabel"> <li> <div> <span class="icon aui-icon content-type-page" title="Page">Page:</span> </div> <div class="details"> <a href="/display/CDML/Adding+Multiple+Reviews">Adding Multiple Reviews</a> </div> </li> <li> <div> <span class="icon aui-icon content-type-page" title="Page">Page:</span> </div> <div class="details"> <a href="/display/CDML/Assignment+Examples">Assignment Examples</a> </div> </li> </ul><p></p></div>
-	 */
-	group†: string;
+   * @type {string}
+   * <div class="content-wrapper"><p>Reviewers must be a member of the specified user group(s):</p><ul><li>A comma-separated list of group names<sup>&#x2021;</sup></li><li>Supports <a href="/display/CDML/Value+References">Value References</a></li></ul><p><span>Note: Users who do not have </span><a href="/display/CDML/Roles+and+Permissions">Edit content permission</a><span> will not be allowed to review.</span></p><p></p><ul class="content-by-label conf-macro output-block" data-hasbody="false" data-macro-name="contentbylabel"> <li> <div> <span class="icon aui-icon content-type-page" title="Page">Page:</span> </div> <div class="details"> <a href="/display/CDML/Adding+Multiple+Reviews">Adding Multiple Reviews</a> </div> </li> <li> <div> <span class="icon aui-icon content-type-page" title="Page">Page:</span> </div> <div class="details"> <a href="/display/CDML/Assignment+Examples">Assignment Examples</a> </div> </li> </ul><p></p></div>
+   */
+  group: string;
 
 	/**
 	 * @type {string}
@@ -67,24 +67,24 @@ class Approval extends Tag {
 	 * <p>Enable approval roles feature</p><ul><li><strong><code>true</code></strong> &#x2013; <a href="/display/CDML/Reviews#Reviews-ApprovalRole">approval roles</a> are enabled, users assigning a review will be able to record the role that the reviewer is performing</li><li><strong><code>false</code></strong> &#x2013; approval roles are dis<span class="inline-comment-marker" data-ref="4bc38691-efd5-409a-8502-fb9f32a93f0b">abled</span></li></ul>
 	 */
 	roles: boolean;
-
-	/**
-	 * @type {string}
-	 * <div class="content-wrapper"><p>A single reviewer must be assigned from the list:</p><ul><li>A comma-separated list of usernames and/or group names</li><li>Group names are treated as &quot;a list of usernames&quot;</li><li>Supports <a href="/display/CDML/Value+References">Value References</a></li></ul><p><span>Note: Users who do not have </span><a href="/display/CDML/Roles+and+Permissions">Edit content permission</a><span> will not be allowed to review.</span></p><p></p><ul class="content-by-label conf-macro output-block" data-hasbody="false" data-macro-name="contentbylabel"> <li> <div> <span class="icon aui-icon content-type-page" title="Page">Page:</span> </div> <div class="details"> <a href="/display/CDML/Assignment+Examples">Assignment Examples</a> </div> </li> </ul><p></p></div>
-	 */
-	selectedapprover†: string;
-
-	/**
-	 * @type {string}
-	 * <div class="content-wrapper"><p>One or more reviewers must be assigned from the list:</p><ul><li>A comma-separated list of usernames and/or group names<sup>&#x2021;</sup></li><li>Group names are treated as &quot;a list of usernames&quot;</li><li>Supports <a href="/display/CDML/Value+References">Value References</a></li></ul><p>Note: Users who do not have <a href="/display/CDML/Roles+and+Permissions">Edit content permission</a> will not be allowed to review.</p><p></p><ul class="content-by-label conf-macro output-block" data-hasbody="false" data-macro-name="contentbylabel"> <li> <div> <span class="icon aui-icon content-type-page" title="Page">Page:</span> </div> <div class="details"> <a href="/display/CDML/Assignment+Examples">Assignment Examples</a> </div> </li> </ul><p></p></div>
-	 */
-	selectedapprovers†: string;
-
-	/**
-	 * @type {string}
-	 * <div class="content-wrapper"><p>Reviewers must be in the specified list:</p><ul><li>A comma-separated list of usernames<sup>&#x2021;</sup></li><li>Supports <a href="/display/CDML/Value+References">Value References</a></li></ul><p><span>Note: Users who do not have </span><a href="/display/CDML/Roles+and+Permissions">Edit content permission</a><span> will not be allowed to review.</span></p><p></p><ul class="content-by-label conf-macro output-block" data-hasbody="false" data-macro-name="contentbylabel"> <li> <div> <span class="icon aui-icon content-type-page" title="Page">Page:</span> </div> <div class="details"> <a href="/display/CDML/Adding+Multiple+Reviews">Adding Multiple Reviews</a> </div> </li> <li> <div> <span class="icon aui-icon content-type-page" title="Page">Page:</span> </div> <div class="details"> <a href="/display/CDML/Assignment+Examples">Assignment Examples</a> </div> </li> <li> <div> <span class="icon aui-icon content-type-page" title="Page">Page:</span> </div> <div class="details"> <a href="/display/CDML/Communardo+Metadata+for+Confluence+app">Communardo Metadata for Confluence app</a> </div> </li> </ul><p></p></div>
-	 */
-	user†: string;
+  
+  /**
+   * @type {string}
+   * <div class="content-wrapper"><p>A single reviewer must be assigned from the list:</p><ul><li>A comma-separated list of usernames and/or group names</li><li>Group names are treated as &quot;a list of usernames&quot;</li><li>Supports <a href="/display/CDML/Value+References">Value References</a></li></ul><p><span>Note: Users who do not have </span><a href="/display/CDML/Roles+and+Permissions">Edit content permission</a><span> will not be allowed to review.</span></p><p></p><ul class="content-by-label conf-macro output-block" data-hasbody="false" data-macro-name="contentbylabel"> <li> <div> <span class="icon aui-icon content-type-page" title="Page">Page:</span> </div> <div class="details"> <a href="/display/CDML/Assignment+Examples">Assignment Examples</a> </div> </li> </ul><p></p></div>
+   */
+  selectedapprover: string;
+  
+  /**
+   * @type {string}
+   * <div class="content-wrapper"><p>One or more reviewers must be assigned from the list:</p><ul><li>A comma-separated list of usernames and/or group names<sup>&#x2021;</sup></li><li>Group names are treated as &quot;a list of usernames&quot;</li><li>Supports <a href="/display/CDML/Value+References">Value References</a></li></ul><p>Note: Users who do not have <a href="/display/CDML/Roles+and+Permissions">Edit content permission</a> will not be allowed to review.</p><p></p><ul class="content-by-label conf-macro output-block" data-hasbody="false" data-macro-name="contentbylabel"> <li> <div> <span class="icon aui-icon content-type-page" title="Page">Page:</span> </div> <div class="details"> <a href="/display/CDML/Assignment+Examples">Assignment Examples</a> </div> </li> </ul><p></p></div>
+   */
+  selectedapprovers: string;
+  
+  /**
+   * @type {string}
+   * <div class="content-wrapper"><p>Reviewers must be in the specified list:</p><ul><li>A comma-separated list of usernames<sup>&#x2021;</sup></li><li>Supports <a href="/display/CDML/Value+References">Value References</a></li></ul><p><span>Note: Users who do not have </span><a href="/display/CDML/Roles+and+Permissions">Edit content permission</a><span> will not be allowed to review.</span></p><p></p><ul class="content-by-label conf-macro output-block" data-hasbody="false" data-macro-name="contentbylabel"> <li> <div> <span class="icon aui-icon content-type-page" title="Page">Page:</span> </div> <div class="details"> <a href="/display/CDML/Adding+Multiple+Reviews">Adding Multiple Reviews</a> </div> </li> <li> <div> <span class="icon aui-icon content-type-page" title="Page">Page:</span> </div> <div class="details"> <a href="/display/CDML/Assignment+Examples">Assignment Examples</a> </div> </li> <li> <div> <span class="icon aui-icon content-type-page" title="Page">Page:</span> </div> <div class="details"> <a href="/display/CDML/Communardo+Metadata+for+Confluence+app">Communardo Metadata for Confluence app</a> </div> </li> </ul><p></p></div>
+   */
+  user: string;
 
 	/**
 	 * @type {string}

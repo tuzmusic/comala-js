@@ -149,12 +149,18 @@ export default class WorkflowCreator {
   private processApproval = (approvalObj: ApprovalObject, stateObj: StateObject): Tag => {
     // create the basic approval tag
     const approvalTag = new Tag('approval', { _: approvalObj.name }, true);
-    
+  
     // some simple parameters
-    addParamsFromObjectToTag(['rememberAssignees', 'approveLabel', 'rejectLabel'], approvalObj, approvalTag);
-    
+    addParamsFromObjectToTag([
+        'rememberAssignees',
+        'approveLabel',
+        'rejectLabel',
+        ...Object.keys(approvalObj.otherParams ?? {})],
+      { ...approvalObj, ...approvalObj.otherParams },
+      approvalTag);
+  
     const { allowedAssigners, allowedApprovers, fastReject, fastApprove } = approvalObj;
-    
+  
     // set who can assign
     if (allowedAssigners) {
       if (allowedAssigners.groups?.length)

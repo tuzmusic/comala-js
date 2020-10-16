@@ -1,5 +1,6 @@
 //region Types
 import State from '../Macros/InUse/State';
+import Approval from '../Macros/InUse/Approval';
 
 export const permissionsTypes = ['view', 'edit'];
 export const userTypes = ['groups', 'users'];
@@ -36,14 +37,16 @@ export type ApprovalObject = {
   * but rather our markup explicitly sets permissions when approvers are assigned and unassigned,
   * and when the review starts and ends. */
   reviewersCan?: Record<PermissionsType, boolean>;
-
+  
   approveLabel?: string;
   rejectLabel?: string;
-
+  
   /* If this approval should cause the state to change, even if other pending approvals
   * remain for this state, this value is the name of the state to transition to when
   * this approval passes.*/
   fastApprove?: string;
+  
+  otherParams?: Partial<Approval>;
 }
 
 export type PermissionsGroup = Record<PermissionsType, PermissionsObject>;
