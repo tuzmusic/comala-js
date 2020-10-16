@@ -134,8 +134,8 @@ describe('createWorkflow', () => {
     });
 
     it('adds simple parameters to the approval tag', () => {
-      inWorkflow.expect(approvals.Editing).toHaveParam({ rememberAssignees: true })
-        .and(approvals.Review).toHaveParam({ rememberAssignees: true });
+      inWorkflow.expect(approvals.Editing).toHaveParam({ rememberAssignees: 'true' })
+        .and(approvals.Review).toHaveParam({ rememberAssignees: 'true' });
     });
 
     it('Designates who is allowed to assign approvers', () => {

@@ -15,6 +15,9 @@ type StoredType = { type: 'known-tag'; content: TagInfo }
   | { type: 'unknown-tag-name'; content: string }
   | { type: 'string'; content: string };
 
+type ParamExpecter = (param: Record<string, string>) => RegexChainer;
+type ChildExpecter = (param: Record<string, string>) => RegexChainer;
+
 export default class RegexChainer {
   source: string;
   stored = {} as StoredType
@@ -22,11 +25,26 @@ export default class RegexChainer {
   // these aliases are defined at the end of the file
   // because referring to the functions, defined below, gives
   // a TS error, despite the es-lint setting at the top.
-  // toHaveParam: StringFunc;
-  withParam: StringFunc;
-  andParam: StringFunc;
-  // toHaveChild: StringFunc;
-  andHaveChild: StringFunc;
+  toHaveParam: ParamExpecter
+  
+  toHaveChild: ChildExpecter;
+  
+  // todo: must be called after a tag. can use 'stored'?
+  //  this isn't just an alias for toHaveParam is it???
+  //  actually I think it's meant to always be called on a child!
+  withParam: ParamExpecter;
+  
+  // todo: alias for withParam, right?
+  andParam: ParamExpecter;
+  
+  // todo: this should be chained off something like:
+  //  expect(stateNamed).toHaveParam(param).
+  //  so it can just use the stored tag already?
+  //  what about checking params on the child? that would
+  //  need to put a new tag in "stored". Maybe this should
+  //  always happen
+  andHaveChild: ChildExpecter;
+  
   toInclude: StringFunc;
   andExpect: StringFunc;
   and: StringFunc;
