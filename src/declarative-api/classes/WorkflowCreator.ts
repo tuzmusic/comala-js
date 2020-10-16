@@ -1,76 +1,5 @@
 import Tag from '../../Tag';
-
-//region Types
-const permissionsTypes = ['view', 'edit'];
-const userTypes = ['groups', 'users'];
-type UserType = typeof userTypes[number]
-type PermissionsType = typeof permissionsTypes[number]
-type PermissionsObject = Record<UserType, string[]>
-
-export type TaskObject = {
-  name: string;
-  assignee: string;
-  // the values of Event return functions, yes.
-  // but when constructing a workflow, the function (that is a
-  // value of Event) is CALLED, so completeOn is simply a function.
-  completeOn: Function;
-};
-
-type ApprovalObject = {
-  /* Name of the approval. */
-  name: string;
-  /* Should prior assignees be reassinged next time we enter this state?
-  *
-  * NB: I think I still haven't confirmed that assignees are not remembered
-  * between the same review on different pages, which the docs might imply. */
-  rememberAssignees?: true;
-  /* Groups/Users who are allowed to assign approvers for this review. */
-  allowedAssigners: PermissionsObject;
-  /* Groups/Users who are available to be assigned as approvers for this review. */
-  allowedApprovers: PermissionsObject;
-  // todo: this api might as well use onRejected, in combination with a fastReject boolean
-
-  /* If a single rejection should reject this review, this value is the name of the
-  * state to transition to on rejection. Its truthiness serves to "activate" fastReject. */
-  fastReject?: string;
-  /* Permissions for reviewers.
-  * Note that these permissions aren't "connected" to the approval or reviewers by Comala,
-  * but rather our markup explicitly sets permissions when approvers are assigned and unassigned,
-  * and when the review starts and ends. */
-  reviewersCan?: Record<PermissionsType, boolean>;
-}
-
-type PermissionsGroup = Record<PermissionsType, PermissionsObject>;
-
-type StateObject = {
-  /* Name of the state */
-  name: string;
-  /* Approvals included in this state.
-  *
-  *  Note that approvals don't do anything without 'onApproved' or 'onRejected'. */
-  approvals?: ApprovalObject[];
-  /* Tasks that are assigned when the state is entered. */
-  tasks?: TaskObject[];
-  /* Edit and view permissions for this state.
-  *
-  * Note that these permissions aren't "connected" to the state by Comala,
-  * but rather our markup explicitly sets permissions on relevant actions. */
-  permissions?: PermissionsGroup;
-  /* The state to transition to when all approvals pass. */
-  onApproved?: string;
-  /* Whether the state is the final state in the workflow. */
-  final?: true;
-  /* If `true`, users cannot select another state from this state. */
-  hideSelection?: true;
-}
-
-export type WorkflowObject = {
-  /* Name for the worklfow. */
-  name: string;
-  /* Pages (in this space) with this label will be controlled by the workflow. */
-  label: string;
-  states: StateObject[];
-}
+import { ApprovalObject, PermissionsGroup, permissionsTypes, StateObject, userTypes, WorkflowObject } from '../types';
 
 //endregion
 
@@ -105,10 +34,18 @@ export default class WorkflowCreator {
   };
 
   // must be public so it can be used from the Event functions.
-  public findTriggerWithParam = (triggerType: string, paramKey: string, paramValue: string) =>
+  public findTriggerWithParam = (triggerType: string, paramKey: string, paramValue: string): Tag =>
     this.triggers.find(tag => tag.parameters['_'] === triggerType
       && tag.parameters[paramKey] === paramValue,
     );
+
+  findOrCreateTriggerWithParam = (triggerType: string, paramKey: string, paramValue: string): Tag => {
+    const existing = this.findTriggerWithParam(triggerType, paramKey, paramValue);
+    if (existing) return existing;
+    const newTrigger = new Tag('trigger', { _: triggerType, [paramKey]: paramValue });
+    this.triggers.push(newTrigger);
+    return newTrigger;
+  };
 
   private processState = (stateObj: StateObject): Tag => {
     // create the basic state tag
@@ -209,9 +146,9 @@ export default class WorkflowCreator {
     const approvalTag = new Tag('approval', { _: approvalObj.name }, true);
 
     // some simple parameters
-    addParamsFromObjectToTag(['rememberAssignees'], approvalObj, approvalTag);
+    addParamsFromObjectToTag(['rememberAssignees', 'approveLabel', 'rejectLabel'], approvalObj, approvalTag);
 
-    const { allowedAssigners, allowedApprovers, fastReject } = approvalObj;
+    const { allowedAssigners, allowedApprovers, fastReject, fastApprove } = approvalObj;
 
     // set who can assign
     if (allowedAssigners) {
@@ -248,6 +185,16 @@ export default class WorkflowCreator {
       // copy those tags to our current trigger.
       permissions.forEach(trigger.addChild);
       this.triggers.push(trigger);
+    }
+
+    if (fastApprove) {
+      const trigger = this.findOrCreateTriggerWithParam('pageapproved', 'approval', approvalObj.name);
+      trigger.addChild(
+        new Tag('set-state', { _: fastApprove }, true),
+      );
+      // TODO: setting the state this way (PROBABLY???) won't trigger
+      //  statechanged so we need to do that too.
+      //  Right?
     }
 
     this.manageReviewerPermissions(approvalObj, stateObj);

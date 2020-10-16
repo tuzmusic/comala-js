@@ -1,8 +1,9 @@
 import { workflow as workflowObj } from '../../src/declarative-api/createdWorkflow';
-import WorkflowCreator, { WorkflowObject } from '../../src/declarative-api/classes/WorkflowCreator';
+import WorkflowCreator from '../../src/declarative-api/classes/WorkflowCreator';
 import RegexChainer from './RegexChainer';
 import * as fs from 'fs';
 import path from 'path';
+import { WorkflowObject } from '../../src/declarative-api/types';
 
 const { inside } = new RegexChainer();
 const { workflow } = new WorkflowCreator(workflowObj as WorkflowObject);
@@ -157,7 +158,6 @@ describe('createWorkflow', () => {
     });
 
     describe('Rejections', () => {
-
       it('Defines fast-track rejections', () => {
         inWorkflow.expect({ triggerNamed: 'pagerejected' })
           .toHaveParam({ approval: approvals.Review.approvalNamed })
@@ -214,5 +214,48 @@ describe('Full markup', () => {
   markupLines.forEach(line => {
     console.log(line);
     expect(workflow.markup).toMatch(line.trim());
+  });
+});
+
+describe('New Features', () => {
+  it('Allows approve/reject labels', () => {
+    const workflow = new WorkflowCreator({
+      name: 'whatever', label: 'whatever',
+      states: [{
+        name: 'some state',
+        approvals: [{ name: 'some approval', approveLabel: 'Yes!', rejectLabel: 'No!' }],
+      }],
+    }).workflow;
+
+    expect(workflow.markup).toMatch(/{approval:some approval\|approvelabel=Yes!\|rejectlabel=No!}/);
+  });
+
+  it('Allows fast-track approvals', () => {
+    const workflow = new WorkflowCreator({
+      name: 'whatever', label: 'whatever',
+      states: [
+        { name: 'first state' },
+        {
+          name: 'second state',
+          approvals: [
+            { name: 'first approval' },
+            { name: 'second approval', fastApprove: 'first state' },
+          ],
+        }],
+    }).workflow;
+
+    inside(workflow.markup)
+      .expect({ triggerNamed: 'pageapproved' })
+      .toHaveParam({ approval: 'second approval' })
+      .andHaveChild({ tagNamed: 'set-state' })
+      .withParam('first state');
+  });
+
+  xit('Supports the user param in Approvals (not just selecteduser)', () => {
+
+  });
+
+  xit('Supports auto-assigned approvers', () => {
+
   });
 });

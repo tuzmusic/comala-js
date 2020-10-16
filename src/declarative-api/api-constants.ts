@@ -1,5 +1,6 @@
 import Tag from '../Tag';
-import WorkflowCreator, { TaskObject } from './classes/WorkflowCreator';
+import WorkflowCreator from './classes/WorkflowCreator';
+import { TaskObject } from './types';
 
 export const Event: Record<string, (args: any) => Function> = {
   reviewersAssigned(approvalName: string): Function {

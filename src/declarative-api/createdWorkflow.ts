@@ -1,5 +1,5 @@
 import { Event } from './api-constants';
-import { WorkflowObject } from './classes/WorkflowCreator';
+import { WorkflowObject } from './types';
 
 export const workflow: WorkflowObject = {
   name: 'Audit Workflow with Assigned Editing',
