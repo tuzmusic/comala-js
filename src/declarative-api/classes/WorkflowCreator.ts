@@ -22,11 +22,19 @@ export default class WorkflowCreator {
   * in context, what should happen when. */
   triggers: Tag[] = [];
   
-  constructor(obj: WorkflowObject) {
-    this.workflow = new Tag('workflow', { name: obj.name, label: obj.label });
+  constructor({ label, name, parameters, states }: WorkflowObject) {
+    this.workflow = new Tag('workflow', { name: name, label: label });
     const { workflow } = this;
     
-    this.states = obj.states.map(this.processState); // populates this.state
+    // simple-convert workflow parameters
+    if (parameters) {
+      const { name, ...workflowParameters } = parameters;
+      workflow.addChild(
+        new Tag('workflowparameter', { _: name, ...workflowParameters })
+      );
+    }
+    
+    this.states = states.map(this.processState); // populates this.state
     this.states.forEach(workflow.addChild);
     this.triggers.forEach(workflow.addChild);
     

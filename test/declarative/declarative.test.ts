@@ -290,4 +290,30 @@ describe('New Features', () => {
   //  It's annoying because it may require rejiggering the type
   //  of allowedApprovers. Not worth the trouble.
   it.todo('Supports auto-assigned approvers');
+  
+  it('Supports workflow parameters', () => {
+    const workflow = new WorkflowCreator(({
+      name: 'whatever', label: 'whatever',
+      parameters: {
+        name: 'Director of Quality/Quality Designee',
+        type: 'user',
+        edit: true
+      },
+      states: [{
+        name: 'first state',
+        otherParams: { colour: '#4A6785' },
+        approvals: [
+          { name: 'first approval', otherParams: { user: '&@author' } }
+        ]
+      }]
+    })).workflow;
+    
+    inside(workflow.markup)
+      .expect({ tagNamed: 'workflowparameter' })
+      .withParam({ type: 'user' })
+      .andParam({ edit: true });
+    
+    expect(workflow.markup).toMatch('{workflowparameter:Director of Quality/Quality Designee|type=user|edit=true}');
+    expect(workflow.markup).toMatch('{workflowparameter}');
+  });
 });

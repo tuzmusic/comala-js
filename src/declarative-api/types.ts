@@ -1,6 +1,7 @@
 //region Types
 import State from '../Macros/InUse/State';
 import Approval from '../Macros/InUse/Approval';
+import Workflowparameter from '../Macros/InUse/Workflowparameter';
 
 export const permissionsTypes = ['view', 'edit'];
 export const userTypes = ['groups', 'users'];
@@ -28,7 +29,7 @@ export type ApprovalObject = {
   /* Groups/Users who are available to be assigned as approvers for this review. */
   allowedApprovers?: PermissionsObject;
   // todo: this api might as well use onRejected, in combination with a fastReject boolean
-
+  
   /* If a single rejection should reject this review, this value is the name of the
   * state to transition to on rejection. Its truthiness serves to "activate" fastReject. */
   fastReject?: string;
@@ -80,4 +81,5 @@ export type WorkflowObject = {
   /* Pages (in this space) with this label will be controlled by the workflow. */
   label: string;
   states: StateObject[];
+  parameters?: Partial<Workflowparameter>;
 }
