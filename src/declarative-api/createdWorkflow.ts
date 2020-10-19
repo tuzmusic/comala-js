@@ -30,11 +30,11 @@ export const workflow: WorkflowObject = {
         },
       ],
       permissions: {
-        view: {
+        viewOnly: {
           groups: ['Internal Audit Managers', 'Internal Audit Team'],
           users: [] as string[],
         },
-        edit: {
+        viewAndEdit: {
           groups: ['Internal Audit Managers', 'Internal Audit Team'],
           users: [] as string[],
         },
@@ -56,10 +56,7 @@ export const workflow: WorkflowObject = {
             users: ['jt-audit-manager'],
           },
           fastReject: 'In Progress', // name of state to reject to
-          reviewersCan: {
-            view: true,
-            edit: false,
-          },
+          reviewersCanEdit: false,
         },
       ],
       tasks: [
@@ -70,11 +67,11 @@ export const workflow: WorkflowObject = {
         },
       ],
       permissions: {
-        edit: {
+        viewAndEdit: {
           groups: [] as string[],
           users: [] as string[],
         },
-        view: {
+        viewOnly: {
           groups: ['Internal Audit Managers', 'Internal Audit Team'],
           users: [] as string[],
         },

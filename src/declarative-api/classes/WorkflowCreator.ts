@@ -2,9 +2,9 @@ import Tag from '../../Tag';
 import {
   ApprovalObject,
   PermissionsGroup,
-  PermissionsType,
-  permissionsTypes,
+  permissionsKeys,
   StateObject,
+  UsersObject,
   UserType,
   userTypes,
   WorkflowObject,
@@ -93,13 +93,13 @@ export default class WorkflowCreator {
         stateTag.addParameter({ [value]: nextState as string });
     });
 
+    // set the state permissions
+    this.manageStatePermissions(stateObj);
+
     // create the approvals
     stateObj.approvals?.map((approvalObj: ApprovalObject) =>
       this.processApproval(approvalObj, stateObj),
     ).forEach(stateTag.addChild);
-
-    // set the state permissions
-    this.manageStatePermissions(stateObj);
 
     // handle tasks
     stateObj.tasks?.forEach(task => {
@@ -131,43 +131,68 @@ export default class WorkflowCreator {
   };
 
   private addPermissionsToTrigger = (permissions: PermissionsGroup, triggerTag: Tag) => {
-    permissionsTypes.forEach((type: PermissionsType) => {
-      if (permissions[type]) {
-        const tag = new Tag('set-restrictions', { type }, true);
+    Object.entries(permissionsKeys).forEach(([permType, permKey]) => {
+      const thesePermissions: UsersObject = permissions[permKey]; // e.g., thesePermissions = permissions.viewOnly
 
-        // add empty-group, or add groups/users
-        if (userTypes.every((key: UserType) => !permissions[type][key].length)) {
-          tag.addParameter({ group: 'empty-group' });
-        } else {
-          userTypes
-            .filter((key: UserType) => permissions[type][key].length)
-            .forEach((key: UserType) =>
-              tag.addParameter({ [key.slice(0, -1)]: permissions[type][key].join() }));
-        }
-        triggerTag.addChild(tag);
+      // If there's nothing defined for these permissions, forget it.
+      // Because edit permissions encompass view permissions (i.e., there's no such thing as
+      // "edit only"), we can do view OR edit permissions.
+      // If we have some users who can only view and some who can also edit, we can use both keys.
+      if (!thesePermissions) return;
+
+      // todo: not setting edit permissions should assign "empty-group" for edit!
+      //  probably also true for view!!!
+
+      const setRestrictionsTag = new Tag('set-restrictions', { type: permType }, true);
+
+      const usersAndGroups = Object.values(thesePermissions).flat();
+
+      // if there are no users OR groups with these permissions, assign "empty group"
+      if (!usersAndGroups.length) {
+        setRestrictionsTag.addParameter({ group: 'empty-group' });
+      } else {
+        // if there ARE users/groups with this permission
+        const userTypesWithPermission = userTypes.filter((userType: UserType) =>
+          permissions?.[permKey]?.[userType]?.length);
+
+        // give add the parameter to the tag
+        userTypesWithPermission.forEach((userType: UserType) =>
+          setRestrictionsTag.addParameter({ [userType.slice(0, -1)]: permissions[permKey][userType].join() }));
       }
+
+      // add the set-restrictions tag, unless for some reason it's already there.
+      if (!triggerTag.children.some(tag => JSON.stringify(tag) === JSON.stringify(setRestrictionsTag)))
+        triggerTag.addChild(setRestrictionsTag);
+
+      /*    if (Object.values(userTypes))
+            if (userTypes.every((userType: UserType) => !thesePermissions[userType]?.length)) {
+              tag.addParameter({ group: 'empty-group' });
+            } else {
+              userTypes
+                .filter((userType: UserType) => permissions?.[permType]?.[userType]?.length)
+                .forEach((userType: UserType) =>
+                  tag.addParameter({ [userType.slice(0, -1)]: permissions[permType][userType].join() }));
+            }
+          triggerTag.addChild(tag);*/
     });
   };
 
-  private manageReviewerPermissions = (approvalObj: ApprovalObject, stateObj: StateObject) => {
-    const { name: approvalName, reviewersCanEdit } = approvalObj;
-    if (reviewersCanEdit) {
-      // make a copy of the state's permissions
-      const statePermissions = { ...stateObj.permissions };
-      const stateEditPermissions = statePermissions.edit.users;
-      const assignees = '@approvalassignees@';
-      if (!stateEditPermissions.includes(assignees))
-        stateEditPermissions.push(assignees);
+  private addEditPermissionsForReviewers = (approvalObj: ApprovalObject, stateObj: StateObject) => {
+    const { name: approvalName } = approvalObj;
 
-      ['pageapprovalassigned', 'approvalunassigned'].forEach(name => {
-          const trigger = this.findOrCreateTriggerWithParam(name, 'approval', approvalName);
-          // this trigger should never already exist, right?
-          // const trigger = new Tag('trigger', { _: name, approval: approvalName });
-          this.addPermissionsToTrigger(statePermissions, trigger);
-          // this.triggers.push(trigger);
-        },
-      );
-    }
+    // make a copy of the state's permissions and add the assignees
+    // "editors" is not seen again in the code because this line already mutates
+    // the statePermissions.viewAndEdit.users array (which is stored, as a reference, in "editors".
+    const statePermissions = { ...stateObj.permissions };
+    const editors = statePermissions.viewAndEdit.users;
+    const assignees = '@approvalassignees@';
+    if (!editors.includes(assignees)) editors.push(assignees);
+
+    ['pageapprovalassigned', 'approvalunassigned'].forEach(name => {
+        const trigger = this.findOrCreateTriggerWithParam(name, 'approval', approvalName);
+        this.addPermissionsToTrigger(statePermissions, trigger);
+      },
+    );
   };
 
   private processApproval = (approvalObj: ApprovalObject, stateObj: StateObject): Tag => {
@@ -185,20 +210,23 @@ export default class WorkflowCreator {
 
     const { allowedAssigners, allowedApprovers, fastReject, fastApprove } = approvalObj;
 
-    // set who can assign
-    if (allowedAssigners) {
+    // set who can assign (actual param is allowedassignusers and allowedassigngroups)
+    userTypes.forEach(key => {
+      if (allowedAssigners?.[key]?.length)
+        approvalTag.addParameter({ [`allowedassign${ key }`]: allowedAssigners[key].join() });
+    });
+    /*if (allowedAssigners) {
       if (allowedAssigners.groups?.length)
-        approvalTag.addParameter({ allowedassigngroups: allowedAssigners.groups.join(',') });
-      if (allowedAssigners.users?.length)
-        approvalTag.addParameter({ allowedassignusers: allowedAssigners.users.join(',') });
-    }
+        approvalTag.addParameter({ allowedassigngroups: allowedAssigners.groups.join() });
 
-    // set who can be assigned
-    if (allowedApprovers) {
-      const approvers: string[] = allowedApprovers.groups.concat(allowedApprovers.users);
-      if (approvers.length)
-        approvalTag.addParameter({ selectedapprovers: approvers.join(',') });
-    }
+      if (allowedAssigners.users?.length)
+        approvalTag.addParameter({ allowedassignusers: allowedAssigners.users.join() });
+    }*/
+
+    // set who can be assigned (actual param is selectedapprovers, for "must assign one or more")
+    const approvers: string[] = (allowedApprovers?.groups ?? []).concat(allowedApprovers?.users ?? []);
+    if (approvers.length)
+      approvalTag.addParameter({ selectedapprovers: approvers.join() });
 
     // handle fast-track rejection
     if (fastReject) {
@@ -233,7 +261,9 @@ export default class WorkflowCreator {
       //  Right?
     }
 
-    this.manageReviewerPermissions(approvalObj, stateObj);
+    if (approvalObj.reviewersCanEdit)
+      this.addEditPermissionsForReviewers(approvalObj, stateObj);
+
     return approvalTag;
   };
 }

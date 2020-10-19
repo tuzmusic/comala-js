@@ -28,8 +28,7 @@ const firstTwoSteps = (name: string, nextName: string, reviewersCanEdit): StateO
     // misleading (not to mention really weird).
     onApproved: nextName,
     permissions: {
-      view: managersOnly(),
-      edit: managersOnly(),
+      viewAndEdit: managersOnly(),
     },
     approvals: [
       {
@@ -72,8 +71,7 @@ const workflow = new WorkflowCreator({
         },
       ],
       permissions: {
-        view: { users: ['@author@'], groups: [] },
-        edit: { users: ['@author@'], groups: [] },
+        viewAndEdit: { users: ['@author@'], groups: [] },
       },
     },
     {
@@ -89,8 +87,8 @@ const workflow = new WorkflowCreator({
       onApproved: states.published,
       otherParams: { colour: '#6554C0' },
       permissions: {
-        edit: { users: [], groups: [] },
-        view: managersOnly(),
+        viewOnly: managersOnly(),
+        viewAndEdit: { users: [], groups: [] },
       },
       approvals: [
         {
@@ -111,8 +109,8 @@ const workflow = new WorkflowCreator({
       name: states.published,
       final: true,
       permissions: {
-        view: { users: [], groups: ['SLI Internal'] },
-        edit: { users: [], groups: [] },
+        viewOnly: { users: [], groups: ['SLI Internal'] },
+        viewAndEdit: { users: [], groups: [] },
       },
     },
   ],

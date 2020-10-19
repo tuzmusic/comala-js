@@ -48,7 +48,7 @@ export default class Tag {
       for (const key in parameters) {
         openingTag += (key == Object.keys(parameters)[0] ? ':' : '|');
         if (key !== '_') openingTag += key.toLowerCase() + '=';
-        openingTag += [parameters[key]].join(',');
+        openingTag += [parameters[key]].join();
       }
       
       return openingTag + '}';

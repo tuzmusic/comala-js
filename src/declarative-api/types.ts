@@ -2,16 +2,32 @@ import Approval from '../Macros/InUse/Approval';
 import Workflowparameter from '../Macros/InUse/Workflowparameter';
 import State from '../Macros/InUse/State';
 
-export const permissionsTypes = ['view', 'edit'];
+// export const permissionsTypes = ['view', 'edit']; // NO LONGER NEEDED
+export const permissionsKeys = {
+  view: 'viewOnly',
+  edit: 'viewAndEdit',
+};
 export const userTypes = ['groups', 'users'];
 
 // Using typeof doesn't appear to actually do typechecking
 export type UserType = 'groups' | 'users'
-export type PermissionsType = 'view' | 'edit'
+// export type PermissionsType = 'view' | 'edit'   // NO LONGER NEEDED, I THINK
 // export type UserType =  typeof userTypes[number]
 // export type PermissionsType = typeof permissionsTypes[number]
 
-export type PermissionsObject = Record<UserType, string[]>
+// This allows for "one or both". The optional second member
+// of each type is necessary for typescript to be happy any
+// time we refer to either member.
+export type UsersObject =
+// Record<UserType, string[]>
+  { users: string[]; groups?: string[] }
+  | { users?: string[]; groups: string[] }
+
+export type PermissionsGroup =
+// Record<PermissionsType, UsersObject>;
+  { viewOnly: UsersObject; viewAndEdit?: UsersObject }
+  | { viewOnly?: UsersObject; viewAndEdit: UsersObject }
+
 export type TaskObject = {
   name: string;
   assignee: string;
@@ -29,9 +45,9 @@ export type ApprovalObject = {
   * between the same review on different pages, which the docs might imply. */
   rememberAssignees?: true;
   /* Groups/Users who are allowed to assign approvers for this review. */
-  allowedAssigners?: PermissionsObject;
+  allowedAssigners?: UsersObject;
   /* Groups/Users who are available to be assigned as approvers for this review. */
-  allowedApprovers?: PermissionsObject;
+  allowedApprovers?: UsersObject;
   // todo: this api might as well use onRejected, in combination with a fastReject boolean
 
   /* If a single rejection should reject this review, this value is the name of the
@@ -42,7 +58,7 @@ export type ApprovalObject = {
   * Note that these permissions aren't "connected" to the approval or reviewers by Comala,
   * but rather our markup explicitly sets permissions when approvers are assigned and unassigned,
   * and when the review starts and ends. */
-  reviewersCanEdit?: true;
+  reviewersCanEdit?: boolean;
 
   approveLabel?: string;
   rejectLabel?: string;
@@ -56,8 +72,6 @@ export type ApprovalObject = {
 
   // TODO: "assignable" should be a first-class param, and possibly even a default
 }
-
-export type PermissionsGroup = Record<PermissionsType, PermissionsObject>;
 
 export type StateObject = {
   /* Name of the state */

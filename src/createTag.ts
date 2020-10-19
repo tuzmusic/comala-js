@@ -29,7 +29,7 @@ export default function createTag(
   
       const value = parameters[key];
   
-      openingTag += [value].join(',');
+      openingTag += [value].join();
     }
     
     return openingTag + '}';
