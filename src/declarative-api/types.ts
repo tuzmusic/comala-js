@@ -55,7 +55,7 @@ export type ApprovalObject = {
 
   otherParams?: Partial<Approval>;
 
-  // TODO: Assignable should be a first-class param
+  // TODO: "assignable" should be a first-class param, and possibly even a default
 }
 
 export type PermissionsGroup = Record<PermissionsType, PermissionsObject>;
@@ -81,6 +81,8 @@ export type StateObject = {
   /* If `true`, users cannot select another state from this state. */
   hideSelection?: true;
   otherParams?: Partial<State>;
+
+  // TODO: handle state-selection macro
 }
 
 export type WorkflowObject = {

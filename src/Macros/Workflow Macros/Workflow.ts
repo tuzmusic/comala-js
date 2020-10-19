@@ -1,4 +1,4 @@
-import Tag from './Tag'
+import Tag from '../../Tag';
 
 class Workflow extends Tag {
 	/**
@@ -49,13 +49,15 @@ class Workflow extends Tag {
 	 * @type {string}
 	 * <div class="content-wrapper"><p>Display a Space-level <a href="https://confluence.atlassian.com/doc/create-a-template-296093779.html" class="external-link" rel="nofollow">Page Template</a> in the footer of all pages / blog posts that the workflow is applied to:</p><ul><li>Full path to template: <strong><code>SPACEKEY:Page Template Title</code></strong></li><li>If no <strong><code>SPACEKEY</code></strong> specified, it will default to the current space</li></ul><p> </p><div class="content-by-label macro-blank-experience conf-macro output-block" data-hasbody="false" data-macro-name="contentbylabel"> <strong class="content-label-header">Content by label</strong> <p>There is no content with the specified labels</p> </div><p></p><p>See also: <a href="/display/CDML/pagefooter+macro">{pagefooter} macro</a></p></div>
 	 */
-	footer or footertemplate: string;
+	footer: string;
+	footertemplate: string;
 
 	/**
 	 * @type {string}
 	 * <div class="content-wrapper"><p>Display a Space-level <a href="https://confluence.atlassian.com/doc/create-a-template-296093779.html" class="external-link" rel="nofollow">Page Template</a> in the header of all pages / blog posts that the workflow is applied to:</p><ul><li>Full path to template: <strong><code>SPACEKEY:Page Template Title</code></strong></li><li>If no <strong><code>SPACEKEY</code></strong> specified, it will default to the current space</li></ul><p> </p><div class="content-by-label macro-blank-experience conf-macro output-block" data-hasbody="false" data-macro-name="contentbylabel"> <strong class="content-label-header">Content by label</strong> <p>There is no content with the specified labels</p> </div><p></p><p>See also: <a href="/display/CDML/pageheader+macro">{pageheader} macro</a>, <a href="/display/CDML/include-segment">{include-segment} macro</a>, <a href="/display/CDML/set-message+macro">{set-message} macro</a>, <a href="/display/CDML/workflow-instructions+macro">{workflow-instructions} macro</a></p></div>
 	 */
-	header or headertemplate: string;
+	header: string;
+	headertemplate: string;
 
 	/**
 	 * @type {boolean}

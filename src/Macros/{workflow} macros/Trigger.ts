@@ -1,4 +1,4 @@
-import Tag from './Tag'
+import Tag from '../../Tag';
 
 class Trigger extends Tag {
 	/**
@@ -50,13 +50,6 @@ class Trigger extends Tag {
 	 * <div class="content-wrapper"><p>If this value is set, then a custom event identified by this value will be <em>published</em> when the actions are executed, and will contain a flag <code>success</code> set to <code>true</code> or <code>false</code> depending on the outcome</p><p></p><ul class="content-by-label conf-macro output-block" data-hasbody="false" data-macro-name="contentbylabel"> <li> <div> <span class="icon aui-icon content-type-page" title="Page">Page:</span> </div> <div class="details"> <a href="/display/CDML/Advanced+different-space+publishing">Advanced different-space publishing</a> </div> </li> <li> <div> <span class="icon aui-icon content-type-page" title="Page">Page:</span> </div> <div class="details"> <a href="/display/CDML/Advanced+remote-space+publishing">Advanced remote-space publishing</a> </div> </li> </ul><p></p></div>
 	 */
 	newevent: string;
-
-	/**
-	 * @type {string}
-	 * This parameter is REQUIRED.
-	 * <div class="content-wrapper"><p><span class="confluence-embedded-file-wrapper"><img class="confluence-embedded-image emoticon emoticon-information confluence-external-resource" alt="(info)" src="https://wiki.comalatech.com/s/en_GB/7502/ac22fa19040b80942f38f572cb0ccfe31fa6e23d/_/images/icons/emoticons/information.png" data-image-src="https://wiki.comalatech.com/s/en_GB/7502/ac22fa19040b80942f38f572cb0ccfe31fa6e23d/_/images/icons/emoticons/information.png"></span> Required for the <strong><code>pageparameterupdate</code></strong> event</p><p>The name of the parameter to monitor.</p><p> </p><div class="content-by-label macro-blank-experience conf-macro output-block" data-hasbody="false" data-macro-name="contentbylabel"> <strong class="content-label-header">Content by label</strong> <p>There is no content with the specified labels</p> </div><p></p></div>
-	 */
-	parameter: string;
 
 	/**
 	 * @type {boolean}

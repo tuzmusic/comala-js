@@ -1,4 +1,4 @@
-import Tag from './Tag'
+import Tag from '../../Tag';
 
 class Description extends Tag {
 }

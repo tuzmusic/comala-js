@@ -1,4 +1,4 @@
-import Tag from './Tag'
+import Tag from '../../Tag';
 
 class WorkflowReport extends Tag {
 	/**
@@ -13,19 +13,19 @@ class WorkflowReport extends Tag {
 	 * This parameter is REQUIRED.
 	 * <p><strong><img class="emoticon emoticon-information" src="/s/-pdv0xt/8401/0f22f74a0c673511e48ab1bc7ae6af4388aa8dbf/_/images/icons/emoticons/information.svg" data-emoticon-name="information" alt="(info)">&#xA0;T</strong>he name of a content review is required for the <strong><code>type=approvals</code></strong> report to work.</p><p>The name is defined by the&#xA0;<a href="https://wiki.comalatech.com/display/CWND/approval+macro" rel="nofollow"><code><strong>{approval}</strong></code>&#xA0;macro</a>, and is shown in the&#xA0;<a href="https://wiki.comalatech.com/display/CWND/Workflow+Popup" rel="nofollow">Workflow Popup</a>&#xA0;during&#xA0;<a href="https://wiki.comalatech.com/display/CWND/Content+reviews" rel="nofollow">Content reviews</a>.</p>
 	 */
-	approval†: string;
+	approval: string;
 
 	/**
 	 * @type {string}
 	 * <p>Should the report be filtered to content that the specified user can currently review?</p><ul><li>Leave empty to include all content</li><li>Specify a username to filter to results which that user can review</li><li>Specify&#xA0;<code><strong>@self</strong></code>&#xA0;to filter to results that the current user can review</li></ul>
 	 */
-	approver†: string;
+	approver: string;
 
 	/**
 	 * @type {string}
 	 * <p><sup><span>&#x2020; </span></sup>For <strong><code>type=approvals</code></strong>, which stage of the content review should the content be in?</p><ul><li><strong>pending</strong>&#xA0;&#x2013; the review is not yet complete</li><li><strong>approved</strong>&#xA0;&#x2013; the review was approved</li><li><strong>rejected</strong>&#xA0;&#x2013; the review was rejected</li></ul><p><sup><span>&#x2021; </span></sup>For <code><strong>type=states</strong></code>, you can provide a comma-separated list of CQL filters in the form <code><strong>FieldName:Value</strong></code> &#x2013; the values must be indexed.</p><ul><li><a href="/display/CDML/CQL+Fields">Workflow CQL Fields</a></li><li><a rel="nofollow" href="https://developer.atlassian.com/server/confluence/advanced-searching-using-cql/" class="external-link">Advanced Searching Using CQL</a>&#xA0;(Atlassian)</li><li><a href="https://developer.atlassian.com/server/confluence/cql-field-reference/" class="external-link" rel="nofollow">CQL Field Reference</a>&#xA0;(Atlassian)</li><li><a class="external-link" rel="nofollow" href="https://developer.atlassian.com/server/confluence/cql-function-reference/">CQL Function Reference</a>&#xA0;(Atlassian)</li><li><a class="external-link" rel="nofollow" href="https://developer.atlassian.com/server/confluence/cql-keywords-reference/">CQL Keywords Reference</a>&#xA0;(Atlassian)</li><li><a class="external-link" href="https://developer.atlassian.com/server/confluence/cql-operators-reference/" rel="nofollow">CQL Operators Reference</a>&#xA0;(Atlassian)&#xA0;</li><li><a class="external-link" href="https://developer.atlassian.com/server/confluence/performing-text-searches-using-cql/" rel="nofollow">Performing Text Searches with CQL</a>&#xA0;(Atlassian)</li></ul>
 	 */
-	filter†‡: string;
+	filter: string;
 
 	/**
 	 * @type {boolean}
@@ -73,12 +73,12 @@ class WorkflowReport extends Tag {
 	 * @type {string}
 	 * <p>Should the report be filtered to specific state(s)?</p><ul><li>Leave empty to report on all states</li><li>Specify one state name to report on that state</li><li>List multiple state names, separated by commas, to report on specific states</li></ul>
 	 */
-	state‡: string;
+	state: string;
 
 	/**
 	 * @type {string}
 	 * <p>Should the report be filtered to content that the specified user can currently review?</p><ul><li>Leave empty to include all content</li><li>Specify a username to filter to results which the specified user can review</li><li>Specify&#xA0;<code><strong>@self</strong></code>&#xA0;to filter to results that the current user can review</li></ul>
 	 */
-	user‡: string;
+	user: string;
 
 }
