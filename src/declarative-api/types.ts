@@ -5,8 +5,13 @@ import Workflowparameter from '../Macros/InUse/Workflowparameter';
 
 export const permissionsTypes = ['view', 'edit'];
 export const userTypes = ['groups', 'users'];
-export type UserType = typeof userTypes[number]
-export type PermissionsType = typeof permissionsTypes[number]
+
+// Using typeof doesn't appear to actually do typechecking
+export type UserType = 'groups' | 'users'
+export type PermissionsType = 'view' | 'edit'
+// export type UserType =  typeof userTypes[number]
+// export type PermissionsType = typeof permissionsTypes[number]
+
 export type PermissionsObject = Record<UserType, string[]>
 export type TaskObject = {
   name: string;
