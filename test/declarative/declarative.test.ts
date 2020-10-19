@@ -249,6 +249,7 @@ describe('New Features', () => {
     inside(workflow.markup)
       .expect({ triggerNamed: 'pageapproved' })
       .toHaveParam({ approval: 'second approval' })
+      .toHaveParam({ partial: 'true' })
       .andHaveChild({ tagNamed: 'set-state' })
       .withParam('first state');
   });

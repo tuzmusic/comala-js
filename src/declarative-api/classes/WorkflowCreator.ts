@@ -220,6 +220,7 @@ export default class WorkflowCreator {
 
     if (fastApprove) {
       const trigger = this.findOrCreateTriggerWithParam('pageapproved', 'approval', approvalObj.name);
+      trigger.addParameter({ partial: 'true' });
       trigger.addChild(
         new Tag('set-state', { _: fastApprove }, true),
       );
