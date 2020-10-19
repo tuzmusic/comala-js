@@ -15,9 +15,15 @@ import clipboardy from 'clipboardy';
 
 function addParamsFromObjectToTag(camelCaseParams: string[], object: any, tag: Tag) {
   camelCaseParams.forEach(param => {
-    const val = object[param];
-    if (val)
+    const val: string = object[param];
+    if (val) {
+      // manage specific issues
+      if (typeof val === 'string' && val.startsWith('&') && param.toLowerCase().startsWith('selected'))
+        throw new Error(`You can't require approvers (using "&") with "${ param }". \n\tTry: "user=${ val }"\n`);
+
+      // add the tag
       tag.addParameter({ [param.toLowerCase()]: val });
+    }
   });
 }
 
