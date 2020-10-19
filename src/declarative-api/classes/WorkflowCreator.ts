@@ -150,27 +150,24 @@ export default class WorkflowCreator {
   };
 
   private manageReviewerPermissions = (approvalObj: ApprovalObject, stateObj: StateObject) => {
-    const { name: approvalName, reviewersCan } = approvalObj;
-    if (!reviewersCan) return;
+    const { name: approvalName, reviewersCanEdit } = approvalObj;
+    if (reviewersCanEdit) {
+      // make a copy of the state's permissions
+      const statePermissions = { ...stateObj.permissions };
+      const stateEditPermissions = statePermissions.edit.users;
+      const assignees = '@approvalassignees@';
+      if (!stateEditPermissions.includes(assignees))
+        stateEditPermissions.push(assignees);
 
-    // make a copy of the state's permissions
-    const statePermissions = { ...stateObj.permissions };
-
-    // add reviewers to the state's permissions
-    permissionsTypes.forEach((key: PermissionsType) => {
-      const text = '@approvalassignees@';
-      if (reviewersCan[key] && !statePermissions[key].users.includes(text)) {
-        statePermissions[key].users.push(text);
-      }
-    });
-
-    ['pageapprovalassigned', 'approvalunassigned']
-      .forEach(name => {
-          const trigger = new Tag('trigger', { _: name, approval: approvalName });
+      ['pageapprovalassigned', 'approvalunassigned'].forEach(name => {
+          const trigger = this.findOrCreateTriggerWithParam(name, 'approval', approvalName);
+          // this trigger should never already exist, right?
+          // const trigger = new Tag('trigger', { _: name, approval: approvalName });
           this.addPermissionsToTrigger(statePermissions, trigger);
-          this.triggers.push(trigger);
+          // this.triggers.push(trigger);
         },
       );
+    }
   };
 
   private processApproval = (approvalObj: ApprovalObject, stateObj: StateObject): Tag => {

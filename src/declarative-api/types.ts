@@ -38,12 +38,11 @@ export type ApprovalObject = {
   * state to transition to on rejection. Its truthiness serves to "activate" fastReject. */
   fastReject?: string;
 
-  // TODO: Reviewers can always view, so this should just be reviewersCanEdit
-  /* Permissions for reviewers.
+  /* Whether reviewers should have edit permissions.
   * Note that these permissions aren't "connected" to the approval or reviewers by Comala,
   * but rather our markup explicitly sets permissions when approvers are assigned and unassigned,
   * and when the review starts and ends. */
-  reviewersCan?: Record<PermissionsType, boolean>;
+  reviewersCanEdit?: true;
 
   approveLabel?: string;
   rejectLabel?: string;
