@@ -1,5 +1,15 @@
 import Tag from '../../Tag';
-import { ApprovalObject, PermissionsGroup, permissionsTypes, StateObject, userTypes, WorkflowObject } from '../types';
+import {
+  ApprovalObject,
+  PermissionsGroup,
+  PermissionsType,
+  permissionsTypes,
+  StateObject,
+  UserType,
+  userTypes,
+  WorkflowObject,
+} from '../types';
+import clipboardy from 'clipboardy';
 
 //endregion
 
@@ -35,6 +45,12 @@ export default class WorkflowCreator {
     this.triggers.forEach(workflow.addChild);
 
     console.log(workflow.markup);
+  };
+
+  getMarkup = () => {
+    clipboardy.writeSync(this.workflow.markup);
+    console.log(this.workflow.markup);
+    console.warn('The above markup has been copied to the clipboard.');
   };
 
   // must be public so it can be used from the Event functions.
@@ -109,17 +125,17 @@ export default class WorkflowCreator {
   };
 
   private addPermissionsToTrigger = (permissions: PermissionsGroup, triggerTag: Tag) => {
-    permissionsTypes.forEach(type => {
+    permissionsTypes.forEach((type: PermissionsType) => {
       if (permissions[type]) {
         const tag = new Tag('set-restrictions', { type }, true);
 
         // add empty-group, or add groups/users
-        if (userTypes.every(key => !permissions[type][key].length)) {
+        if (userTypes.every((key: UserType) => !permissions[type][key].length)) {
           tag.addParameter({ group: 'empty-group' });
         } else {
           userTypes
-            .filter(key => permissions[type][key].length)
-            .forEach(key =>
+            .filter((key: UserType) => permissions[type][key].length)
+            .forEach((key: UserType) =>
               tag.addParameter({ [key.slice(0, -1)]: permissions[type][key].join() }));
         }
         triggerTag.addChild(tag);
@@ -135,7 +151,7 @@ export default class WorkflowCreator {
     const statePermissions = { ...stateObj.permissions };
 
     // add reviewers to the state's permissions
-    permissionsTypes.forEach(key => {
+    permissionsTypes.forEach((key: PermissionsType) => {
       if (reviewersCan[key]) {
         statePermissions[key].users.push('@approvalassignees@');
       }

@@ -1,7 +1,6 @@
-//region Types
-import State from '../Macros/InUse/State';
 import Approval from '../Macros/InUse/Approval';
 import Workflowparameter from '../Macros/InUse/Workflowparameter';
+import State from '../Macros/InUse/State';
 
 export const permissionsTypes = ['view', 'edit'];
 export const userTypes = ['groups', 'users'];
