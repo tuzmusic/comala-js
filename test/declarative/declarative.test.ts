@@ -294,18 +294,18 @@ describe('New Features', () => {
   it('Supports workflow parameters', () => {
     const workflow = new WorkflowCreator(({
       name: 'whatever', label: 'whatever',
-      parameters: {
+      parameters: [{
         name: 'Director of Quality/Quality Designee',
         type: 'user',
-        edit: true
-      },
+        edit: true,
+      }],
       states: [{
         name: 'first state',
         otherParams: { colour: '#4A6785' },
         approvals: [
-          { name: 'first approval', otherParams: { user: '&@author' } }
-        ]
-      }]
+          { name: 'first approval', otherParams: { user: '&@author' } },
+        ],
+      }],
     })).workflow;
     
     inside(workflow.markup)

@@ -76,10 +76,10 @@ export type StateObject = {
 }
 
 export type WorkflowObject = {
-  /* Name for the worklfow. */
+  /* Name for the work\flow. */
   name: string;
   /* Pages (in this space) with this label will be controlled by the workflow. */
   label: string;
   states: StateObject[];
-  parameters?: Partial<Workflowparameter>;
+  parameters?: Partial<Workflowparameter>[];
 }
