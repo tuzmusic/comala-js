@@ -1,6 +1,7 @@
 import Tag from '../../Tag';
 import {
   ApprovalObject,
+  ParamValueType,
   PermissionsGroup,
   permissionsKeys,
   StateObject,
@@ -22,7 +23,7 @@ function addParamsFromObjectToTag(camelCaseParams: string[], object: any, tag: T
         throw new Error(`You can't require approvers (using "&") with "${ param }". \n\tTry: "user=${ val }"\n`);
 
       // add the tag
-      tag.addParameter({ [param.toLowerCase()]: val });
+      tag.addParameters({ [param.toLowerCase()]: val });
     }
   });
 }
@@ -50,7 +51,7 @@ export default class WorkflowCreator {
     this.states.forEach(workflow.addChild);
     this.triggers.forEach(workflow.addChild);
 
-    console.log(workflow.markup);
+    // console.log(workflow.markup);
   };
 
   getMarkup = () => {
@@ -60,15 +61,27 @@ export default class WorkflowCreator {
   };
 
   // must be public so it can be used from the Event functions.
-  public findTriggerWithParam = (triggerType: string, paramKey: string, paramValue: string): Tag =>
-    this.triggers.find(tag => tag.parameters['_'] === triggerType
-      && tag.parameters[paramKey] === paramValue,
+  public findTriggerWithParam = (triggerType: string, relevantParams: Record<string, ParamValueType>): Tag =>
+    // find the tag with...
+    this.triggers.find(tag => {
+        // the same trigger type (statechanged, approvalassigned, etc)...
+        const sameTriggerType = tag.parameters['_'] === triggerType;
+
+        // and the same values for the test params.
+        const sameRelevantParams = Object.entries(relevantParams).every(([key, value]) =>
+          tag.parameters[key] === value);
+
+        return sameTriggerType && sameRelevantParams;
+      },
     );
 
-  findOrCreateTriggerWithParam = (triggerType: string, paramKey: string, paramValue: string): Tag => {
-    const existing = this.findTriggerWithParam(triggerType, paramKey, paramValue);
+  // findOrCreateTriggerWithParam = (triggerType: string, paramKey: string, paramValue: string): Tag => {
+  findOrCreateTriggerWithParam = (triggerType: string, params: Record<string, ParamValueType>): Tag => {
+    const existing = this.findTriggerWithParam(triggerType, params);
     if (existing) return existing;
-    const newTrigger = new Tag('trigger', { _: triggerType, [paramKey]: paramValue });
+
+    const newTrigger = new Tag('trigger', { _: triggerType, ...params });
+
     this.triggers.push(newTrigger);
     return newTrigger;
   };
@@ -90,7 +103,7 @@ export default class WorkflowCreator {
     Object.entries(transitions).forEach(([key, value]) => {
       const nextState = stateObj[key as keyof StateObject];
       if (nextState)
-        stateTag.addParameter({ [value]: nextState as string });
+        stateTag.addParameters({ [value]: nextState as string });
     });
 
     // set the state permissions
@@ -149,7 +162,7 @@ export default class WorkflowCreator {
 
       // if there are no users OR groups with these permissions, assign "empty group"
       if (!usersAndGroups.length) {
-        setRestrictionsTag.addParameter({ group: 'empty-group' });
+        setRestrictionsTag.addParameters({ group: 'empty-group' });
       } else {
         // if there ARE users/groups with this permission
         const userTypesWithPermission = userTypes.filter((userType: UserType) =>
@@ -157,7 +170,7 @@ export default class WorkflowCreator {
 
         // give add the parameter to the tag
         userTypesWithPermission.forEach((userType: UserType) =>
-          setRestrictionsTag.addParameter({ [userType.slice(0, -1)]: permissions[permKey][userType].join() }));
+          setRestrictionsTag.addParameters({ [userType.slice(0, -1)]: permissions[permKey][userType].join() }));
       }
 
       // add the set-restrictions tag, unless for some reason it's already there.
@@ -189,7 +202,11 @@ export default class WorkflowCreator {
     if (!editors.includes(assignees)) editors.push(assignees);
 
     ['pageapprovalassigned', 'approvalunassigned'].forEach(name => {
-        const trigger = this.findOrCreateTriggerWithParam(name, 'approval', approvalName);
+        // find or create the trigger
+        const trigger = this.findOrCreateTriggerWithParam(name, { approval: approvalName });
+        // make sure this trigger only fires in the correct state
+        trigger.addParameters({ state: stateObj.name });
+        // add the set-restrictions tag
         this.addPermissionsToTrigger(statePermissions, trigger);
       },
     );
@@ -213,7 +230,7 @@ export default class WorkflowCreator {
     // set who can assign (actual param is allowedassignusers and allowedassigngroups)
     userTypes.forEach(key => {
       if (allowedAssigners?.[key]?.length)
-        approvalTag.addParameter({ [`allowedassign${ key }`]: allowedAssigners[key].join() });
+        approvalTag.addParameters({ [`allowedassign${ key }`]: allowedAssigners[key].join() });
     });
     /*if (allowedAssigners) {
       if (allowedAssigners.groups?.length)
@@ -226,7 +243,7 @@ export default class WorkflowCreator {
     // set who can be assigned (actual param is selectedapprovers, for "must assign one or more")
     const approvers: string[] = (allowedApprovers?.groups ?? []).concat(allowedApprovers?.users ?? []);
     if (approvers.length)
-      approvalTag.addParameter({ selectedapprovers: approvers.join() });
+      approvalTag.addParameters({ selectedapprovers: approvers.join() });
 
     // handle fast-track rejection
     if (fastReject) {
@@ -238,7 +255,7 @@ export default class WorkflowCreator {
       trigger.addChild(new Tag('set-state', { _: fastReject }, true));
 
       // find the set-state trigger for the state the fastReject moves to
-      const statePermissionTrigger = this.findTriggerWithParam('statechanged', 'state', fastReject);
+      const statePermissionTrigger = this.findTriggerWithParam('statechanged', { state: fastReject });
 
       // that trigger sets the permissions. grab the set-restrictions tags.
       const permissions = statePermissionTrigger.children.filter(
@@ -251,8 +268,11 @@ export default class WorkflowCreator {
     }
 
     if (fastApprove) {
-      const trigger = this.findOrCreateTriggerWithParam('pageapproved', 'approval', approvalObj.name);
-      trigger.addParameter({ partial: 'true' });
+      const trigger = this.findOrCreateTriggerWithParam('pageapproved', {
+        approval: approvalObj.name,
+        state: stateObj.name,
+      });
+      trigger.addParameters({ partial: true, state: stateObj.name });
       trigger.addChild(
         new Tag('set-state', { _: fastApprove }, true),
       );

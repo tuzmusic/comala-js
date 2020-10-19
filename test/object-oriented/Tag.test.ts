@@ -18,11 +18,11 @@ describe('Tag class', () => {
     it('can add a parameter later', () => {
       const tag = new Tag('tag', { paramA: 'abc', paramB: '123' });
       expect(tag.markup).toEqual(lines([
-        '{tag:parama=abc|paramb=123}', '{tag}'
+        '{tag:parama=abc|paramb=123}', '{tag}',
       ]));
-      tag.addParameter({ paramC: 'xyz' });
+      tag.addParameters({ paramC: 'xyz' });
       expect(tag.markup).toEqual(lines([
-        '{tag:parama=abc|paramb=123|paramc=xyz}', '{tag}'
+        '{tag:parama=abc|paramb=123|paramc=xyz}', '{tag}',
       ]));
     });
     
@@ -105,7 +105,7 @@ describe('Tag class', () => {
       ]));
       
       // add parameter to parent
-      tag.addParameter({ newParam: 'xyz' });
+      tag.addParameters({ newParam: 'xyz' });
       expect(tag.markup).toEqual(lines([
         '{parent:newparam=xyz}',
         '\t{child1}',

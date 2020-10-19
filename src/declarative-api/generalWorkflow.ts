@@ -120,4 +120,4 @@ workflow.states[workflow.states.length - 1].addChild(
   new Tag('state-selection', { states: states.inProcess, user: managers().slice(0, 2) }, true),
 );
 
-// workflow.getMarkup();
+workflow.getMarkup();

@@ -2,18 +2,16 @@ import Approval from '../Macros/InUse/Approval';
 import Workflowparameter from '../Macros/InUse/Workflowparameter';
 import State from '../Macros/InUse/State';
 
-// export const permissionsTypes = ['view', 'edit']; // NO LONGER NEEDED
+export type ParamValueType = string | string[] | number | boolean;
+
 export const permissionsKeys = {
   view: 'viewOnly',
   edit: 'viewAndEdit',
 };
-export const userTypes = ['groups', 'users'];
 
 // Using typeof doesn't appear to actually do typechecking
+export const userTypes = ['groups', 'users'];
 export type UserType = 'groups' | 'users'
-// export type PermissionsType = 'view' | 'edit'   // NO LONGER NEEDED, I THINK
-// export type UserType =  typeof userTypes[number]
-// export type PermissionsType = typeof permissionsTypes[number]
 
 // This allows for "one or both". The optional second member
 // of each type is necessary for typescript to be happy any

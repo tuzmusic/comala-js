@@ -7,7 +7,7 @@ export const Event: Record<string, (args: any) => Function> = {
     // BIND WHEN CALLED
     return function (this: WorkflowCreator, task: TaskObject) {
       // find the right trigger
-      const existingTrigger = this.findTriggerWithParam('pageapprovalassigned', 'approval', approvalName);
+      const existingTrigger = this.findTriggerWithParam('pageapprovalassigned', { approval: approvalName });
       // if we don't have one yet, create it
       const trigger = existingTrigger ??
         new Tag('trigger', { _: 'pageapprovalassigned', approval: approvalName });
