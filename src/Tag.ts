@@ -1,17 +1,19 @@
-import { lines } from '../test/createTag.test';
-
 // eslint-disable-next-line @typescript-eslint/no-use-before-define
 type ParamType = { childTags?: Tag[] } & Record<string, ParamValueType>
 type ParamValueType = string | string[] | number | boolean;
 
+export function lines(strs: string[]): string {
+  return strs.join('\n');
+}
+
 export default class Tag {
-  
-  tagName: string
-  parameters: Record<string, string>
-  selfClosing: boolean
-  textLines: string[] = []
-  children: Tag[] = []
-  
+
+  tagName: string;
+  parameters: Record<string, string>;
+  selfClosing: boolean;
+  textLines: string[] = [];
+  children: Tag[] = [];
+
   constructor(tagName: string, parameters: ParamType = {}, selfClosing: boolean = false) {
     this.tagName = tagName;
     

@@ -1,8 +1,5 @@
 import createTag from '../src/createTag';
-
-export function lines(strs: string[]): string {
-  return strs.join('\n');
-}
+import { lines } from '../src/Tag';
 
 describe('createTag', () => {
   it('creates a bare tag', () => {

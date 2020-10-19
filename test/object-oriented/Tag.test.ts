@@ -1,5 +1,4 @@
-import Tag from '../../src/Tag';
-import { lines } from '../createTag.test';
+import Tag, { lines } from '../../src/Tag';
 
 describe('Tag class', () => {
   describe('main functionality', () => {
