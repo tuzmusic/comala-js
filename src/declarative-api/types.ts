@@ -33,25 +33,29 @@ export type ApprovalObject = {
   /* Groups/Users who are available to be assigned as approvers for this review. */
   allowedApprovers?: PermissionsObject;
   // todo: this api might as well use onRejected, in combination with a fastReject boolean
-  
+
   /* If a single rejection should reject this review, this value is the name of the
   * state to transition to on rejection. Its truthiness serves to "activate" fastReject. */
   fastReject?: string;
+
+  // TODO: Reviewers can always view, so this should just be reviewersCanEdit
   /* Permissions for reviewers.
   * Note that these permissions aren't "connected" to the approval or reviewers by Comala,
   * but rather our markup explicitly sets permissions when approvers are assigned and unassigned,
   * and when the review starts and ends. */
   reviewersCan?: Record<PermissionsType, boolean>;
-  
+
   approveLabel?: string;
   rejectLabel?: string;
-  
+
   /* If this approval should cause the state to change, even if other pending approvals
   * remain for this state, this value is the name of the state to transition to when
   * this approval passes.*/
   fastApprove?: string;
-  
+
   otherParams?: Partial<Approval>;
+
+  // TODO: Assignable should be a first-class param
 }
 
 export type PermissionsGroup = Record<PermissionsType, PermissionsObject>;

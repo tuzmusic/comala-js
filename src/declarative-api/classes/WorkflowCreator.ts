@@ -158,8 +158,9 @@ export default class WorkflowCreator {
 
     // add reviewers to the state's permissions
     permissionsTypes.forEach((key: PermissionsType) => {
-      if (reviewersCan[key]) {
-        statePermissions[key].users.push('@approvalassignees@');
+      const text = '@approvalassignees@';
+      if (reviewersCan[key] && !statePermissions[key].users.includes(text)) {
+        statePermissions[key].users.push(text);
       }
     });
 
