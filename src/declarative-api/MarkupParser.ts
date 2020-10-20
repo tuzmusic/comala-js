@@ -197,3 +197,4 @@ const markup = `{workflow:name=DCR Workflow|label=dcr-test}
 const parsed = new MarkupParser(markup);
 console.log(parsed.workflow.markup);
 console.log(parsed.workflow.markup.split('\n').length, 'LINES');
+console.log(markup === parsed.workflow.markup);
