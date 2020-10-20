@@ -60,6 +60,7 @@ export default class WorkflowCreator {
   getMarkup = () => {
     clipboardy.writeSync(this.workflow.markup);
     console.log(this.workflow.markup);
+    console.log(this.workflow.markup.split('\n').length, 'LINES');
     console.warn('The above markup has been copied to the clipboard.');
   };
 
