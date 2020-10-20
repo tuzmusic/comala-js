@@ -190,20 +190,26 @@ export default class WorkflowCreator {
     });
   };
 
-  private addEditPermissionsForReviewers = (approvalObj: ApprovalObject, stateObj: StateObject) => {
-    const { name: approvalName } = approvalObj;
-
-    // make a copy of the state's permissions and add the assignees
-    // "editors" is not seen again in the code because this line already mutates
-    // the statePermissions.viewAndEdit.users array (which is stored, as a reference, in "editors".
-    const statePermissions = { ...stateObj.permissions };
-    const editors = statePermissions.viewAndEdit.users;
+  private managerReviewerPermissions = (approvalObj: ApprovalObject, stateObj: StateObject) => {
+    const { name: approvalName, reviewersCanEdit } = approvalObj;
     const assignees = '@approvalassignees@';
-    if (!editors.includes(assignees)) editors.push(assignees);
+    const permissionName = reviewersCanEdit ? 'viewAndEdit' : 'viewOnly';
+
+    // make a copy of the state's permissions
+    const statePermissions = { ...stateObj.permissions };
+    // add an empty object for the relevant permissions if needed
+    statePermissions[permissionName] = statePermissions[permissionName] ?? { users: [] };
+    // get a copy of the relevant permissions, so we don't change the existing array
+    // which could be referenced elsewhere
+    const relevantPermissions = [...statePermissions[permissionName].users];
+    // add assignees to the permissions if they're not already added
+    if (!relevantPermissions.includes(assignees)) relevantPermissions.push(assignees);
+    // set the new permissions for our copied object
+    statePermissions[permissionName].users = relevantPermissions;
 
     ['pageapprovalassigned', 'approvalunassigned'].forEach(name => {
         // find or create the trigger
-        const trigger = this.findOrCreateTriggerWithParam(name, { approval: approvalName });
+        const trigger = this.findOrCreateTriggerWithParam(name, { approval: approvalName, state: stateObj.name });
         // make sure this trigger only fires in the correct state
         trigger.addParameters({ state: stateObj.name });
         // add the set-restrictions tag
@@ -281,8 +287,7 @@ export default class WorkflowCreator {
       //  Right?
     }
 
-    if (approvalObj.reviewersCanEdit)
-      this.addEditPermissionsForReviewers(approvalObj, stateObj);
+    this.managerReviewerPermissions(approvalObj, stateObj);
 
     return approvalTag;
   };

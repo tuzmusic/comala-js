@@ -38,7 +38,7 @@ const firstTwoSteps = (name: string, nextName: string, reviewersCanEdit): StateO
         allowedApprovers: { users: [], groups: ['SLI Internal'] },
         approveLabel: 'Ready',
         rejectLabel: 'Not Ready',
-        rememberAssignees: true,
+        // rememberAssignees: true,
         otherParams: { assignable: true },
       },
       {
@@ -102,7 +102,7 @@ const workflow = new WorkflowCreator({
           fastReject: states.inProcess,
           allowedAssigners: managersOnly(),
           allowedApprovers: { users: [], groups: ['SLI Internal'] },
-          rememberAssignees: true,
+          // rememberAssignees: true,
         },
       ],
     },
