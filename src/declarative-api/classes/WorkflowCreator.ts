@@ -38,16 +38,19 @@ export default class WorkflowCreator {
   * reason for creating the API: to abstract the imperative triggers, using object declaration to indicate,
   * in context, what should happen when. */
   triggers: Tag[] = [];
+  label: string;
 
   constructor({ label, name, parameters, states }: WorkflowObject) {
     this.workflow = new Tag('workflow', { name: name, label: label });
+    this.label = label;
+
     const { workflow } = this;
 
     // simple-convert workflow parameters
     parameters?.forEach(({ name, ...workflowParameters }) =>
       workflow.addChild(new Tag('workflowparameter', { _: name, ...workflowParameters })));
 
-    this.states = states.map(this.processState); // populates this.state
+    states.forEach(this.processAndAddState); // populates this.state
     this.states.forEach(workflow.addChild);
     this.triggers.forEach(workflow.addChild);
 
@@ -86,16 +89,17 @@ export default class WorkflowCreator {
     return newTrigger;
   };
 
-  private processState = (stateObj: StateObject): Tag => {
+  private processAndAddState = (stateObj: StateObject): void => {
     // create the basic state tag
     const stateTag = new Tag('state', { _: stateObj.name });
+    stateObj.otherParams = stateObj.otherParams ?? {};
 
     // some simple parameters
     addParamsFromObjectToTag([
         'final',
         'hideSelection',
-        ...Object.keys(stateObj.otherParams ?? {})],
-      { ...stateObj, ...stateObj.otherParams ?? {} },
+        ...Object.keys(stateObj.otherParams)],
+      { ...stateObj, ...stateObj.otherParams },
       stateTag);
 
     // add the parameters for (simple) transitions
@@ -128,42 +132,49 @@ export default class WorkflowCreator {
       stateTag.addChild(taskTag);
     }); // for (task of tasks)
 
-    return stateTag;
+    this.states.push(stateTag);
   };
 
   private manageStatePermissions = (stateObj: StateObject) => {
     const { name: stateName, permissions } = stateObj;
     if (!permissions) return;
 
-    // prepare the trigger tag
-    const triggerTag = new Tag('trigger', { _: 'statechanged', state: stateName });
-    // add the set-restrictions tags
-    this.addPermissionsToTrigger(permissions, triggerTag);
-    // add to workflow
-    this.triggers.push(triggerTag);
+    const triggers = [
+      new Tag('trigger', { _: 'statechanged', state: stateName }),
+    ];
+
+    // if this is the first state, also set permissions when the label is added
+    if (!this.states.length)
+      triggers.unshift(new Tag('trigger', { _: 'labeladded', label: this.label }));
+
+    triggers.forEach(triggerTag => {
+      // add the set-restrictions tags
+      this.addPermissionsToTrigger(permissions, triggerTag);
+      // add to workflow
+      this.triggers.push(triggerTag);
+    });
+    // // prepare the trigger tag
+    // const triggerTag = new Tag('trigger', { _: 'statechanged', state: stateName });
   };
 
   private addPermissionsToTrigger = (permissions: PermissionsGroup, triggerTag: Tag) => {
     Object.entries(permissionsKeys).forEach(([permType, permKey]) => {
       const thesePermissions: UsersObject = permissions[permKey]; // e.g., thesePermissions = permissions.viewOnly
+      const setRestrictionsTag = new Tag('set-restrictions', { type: permType }, true);
 
       // If there's nothing defined for these permissions, forget it.
       // Because edit permissions encompass view permissions (i.e., there's no such thing as
       // "edit only"), we can do view OR edit permissions.
       // If we have some users who can only view and some who can also edit, we can use both keys.
-      if (!thesePermissions) return;
-
-      // todo: not setting edit permissions should assign "empty-group" for edit!
-      //  probably also true for view!!!
-
-      const setRestrictionsTag = new Tag('set-restrictions', { type: permType }, true);
-
-      const usersAndGroups = Object.values(thesePermissions).flat();
-
-      // if there are no users OR groups with these permissions, assign "empty group"
-      if (!usersAndGroups.length) {
+      if (!thesePermissions || !Object.values(thesePermissions).flat().length) {
         setRestrictionsTag.addParameters({ group: 'empty-group' });
       } else {
+
+        // if there are no users OR groups with these permissions, assign "empty group"
+        // const usersAndGroups = Object.values(thesePermissions).flat();
+        // if (!usersAndGroups.length) {
+        //   setRestrictionsTag.addParameters({ group: 'empty-group' });
+        // } else {
         // if there ARE users/groups with this permission
         const userTypesWithPermission = userTypes.filter((userType: UserType) =>
           permissions?.[permKey]?.[userType]?.length);
@@ -171,22 +182,11 @@ export default class WorkflowCreator {
         // give add the parameter to the tag
         userTypesWithPermission.forEach((userType: UserType) =>
           setRestrictionsTag.addParameters({ [userType.slice(0, -1)]: permissions[permKey][userType].join() }));
+        // }
       }
-
       // add the set-restrictions tag, unless for some reason it's already there.
       if (!triggerTag.children.some(tag => JSON.stringify(tag) === JSON.stringify(setRestrictionsTag)))
         triggerTag.addChild(setRestrictionsTag);
-
-      /*    if (Object.values(userTypes))
-            if (userTypes.every((userType: UserType) => !thesePermissions[userType]?.length)) {
-              tag.addParameter({ group: 'empty-group' });
-            } else {
-              userTypes
-                .filter((userType: UserType) => permissions?.[permType]?.[userType]?.length)
-                .forEach((userType: UserType) =>
-                  tag.addParameter({ [userType.slice(0, -1)]: permissions[permType][userType].join() }));
-            }
-          triggerTag.addChild(tag);*/
     });
   };
 

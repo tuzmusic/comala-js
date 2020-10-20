@@ -15,7 +15,7 @@ const approvals = {
 
 const director = 'Document Manager';
 const processOwner = 'Process Owner';
-const managers = () => [director, processOwner /*'author'*/].map(n => `@${ n }@`);
+const managers = () => [director, processOwner, 'author'].map(n => `@${ n }@`);
 const managersOnly = () => ({ users: managers(), groups: [] });
 
 const firstTwoSteps = (name: string, nextName: string, reviewersCanEdit): StateObject => ({
@@ -68,6 +68,7 @@ const workflow = new WorkflowCreator({
           otherParams: { user: '&@author@' },
           approveLabel: 'Ready',
           rejectLabel: 'Cancel',
+          reviewersCanEdit: true,
         },
       ],
       permissions: {
