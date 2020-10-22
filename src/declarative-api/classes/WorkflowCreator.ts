@@ -257,6 +257,7 @@ export default class WorkflowCreator {
       const trigger = new Tag('trigger', {
         _: 'pagerejected',
         approval: approvalObj.name,
+        state: stateObj.name,
         partial: 'true',
       });
       trigger.addChild(new Tag('set-state', { _: fastReject }, true));

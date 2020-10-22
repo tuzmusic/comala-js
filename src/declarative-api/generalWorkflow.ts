@@ -2,69 +2,83 @@ import WorkflowCreator from './classes/WorkflowCreator';
 import Tag from '../Tag';
 import { StateObject } from './types';
 
-const states = {
+export const states = {
+  migration: 'Migration',
   inProcess: 'In Process',
   inReview: 'In Review',
   inApproval: 'In Approval',
   published: 'Published',
 };
-const approvals = {
+export const approvals = {
+  assign: 'Assign Roles',
   author: 'Author Review',
   peer: 'Peer Review',
+  manager: 'Manager Approval',
+  approval: 'Approval',
 };
 
-const director = 'Document Manager';
-const processOwner = 'Process Owner';
-const managers = () => [director, processOwner, 'author'].map(n => `@${ n }@`);
+const director = 'Higher Authority';
+const docAuthor = 'Document Author';
+const managers = () => [director, docAuthor, 'author'].map(n => `@${ n }@`);
 const managersOnly = () => ({ users: managers(), groups: [] });
 
-const firstTwoSteps = (name: string, nextName: string, reviewersCanEdit): StateObject => ({
-    name: name,
-    // even though we don't want the reviewers' approval to advance the state,
-    // the state isn't considered approved until all reviews are done, which means
-    // not until the managers have all approved. Since a manager approval advances
-    // the state on its own, there's no harm in setting onApproved.
-    // If we don't set onApproved, then the diagram in the workflow builder is
-    // misleading (not to mention really weird).
-    onApproved: nextName,
-    permissions: {
-      viewAndEdit: managersOnly(),
-    },
-    approvals: [
-      {
-        name: approvals.peer,
-        reviewersCanEdit,
-        allowedAssigners: managersOnly(),
-        allowedApprovers: { users: [], groups: ['SLI Internal'] },
-        approveLabel: 'Ready',
-        rejectLabel: 'Not Ready',
-        // rememberAssignees: true,
-        otherParams: { assignable: true },
+const sliGroup = 'SLI Internal';
+const firstTwoMainStates = (name: string, nextName: string, reviewersCanEdit): StateObject => {
+  const state: StateObject = ({
+      name: name,
+      // even though we don't want the reviewers' approval to advance the state,
+      // the state isn't considered approved until all reviews are done, which means
+      // not until the managers have all approved. Since a manager approval advances
+      // the state on its own, there's no harm in setting onApproved.
+      // If we don't set onApproved, then the diagram in the workflow builder is
+      // misleading (not to mention really weird).
+      onApproved: nextName,
+      permissions: {
+        viewAndEdit: managersOnly(),
       },
-      {
-        name: approvals.author,
-        fastApprove: nextName,
-        otherParams: { user: '&' + managers() },
-      },
-    ],
-  }
-);
+      approvals: [
+        {
+          name: approvals.peer,
+          reviewersCanEdit,
+          allowedAssigners: managersOnly(),
+          allowedApprovers: { users: [], groups: [sliGroup] },
+          approveLabel: 'Ready',
+          rejectLabel: 'Not Ready',
+          // rememberAssignees: true,
+          otherParams: { assignable: true },
+        },
+        {
+          name: approvals.author,
+          fastApprove: nextName,
+          otherParams: { user: '&' + managers() },
+        },
+      ],
+    }
+  );
+
+  // not the most elegant way to do this but whatever.
+  if (name === states.inReview)
+    state.approvals.find(({ name }) => name === approvals.author)
+      .fastReject = states.inProcess;
+
+  return state;
+};
 
 const workflow = new WorkflowCreator({
   name: 'DCR Workflow',
   label: 'dcr-test',
   parameters: [
     { name: director, type: 'user', edit: true },
-    { name: processOwner, type: 'user', edit: true },
+    { name: docAuthor, type: 'user', edit: true },
   ],
   states: [
     {
-      name: 'Migration',
+      name: states.migration,
       onApproved: states.inProcess,
       otherParams: { hidefrompath: true, colour: '#4A6785' },
       approvals: [
         {
-          name: 'Assign Roles',
+          name: approvals.assign,
           otherParams: { user: '&@author@' },
           approveLabel: 'Ready',
           rejectLabel: 'Cancel',
@@ -76,32 +90,43 @@ const workflow = new WorkflowCreator({
       },
     },
     {
-      ...firstTwoSteps(states.inProcess, states.inReview, true),
-      otherParams: { requiredparams: [director, processOwner].join() },
+      ...firstTwoMainStates(states.inProcess, states.inReview, true),
+      // migrator must assign higher authorities
+      otherParams: { requiredparams: [director, docAuthor].join() },
     },
     {
-      ...firstTwoSteps(states.inReview, states.inApproval, false),
-      otherParams: { colour: '#0052CC' },
+      ...firstTwoMainStates(states.inReview, states.inApproval, false),
+      otherParams: {
+        colour: '#0052CC',
+        // for diagram. doesn't really do anything and is safe to have anyway.
+        rejected: states.inProcess,
+      },
+      // author review fast-rejects to in process
+      // approvals:
     },
     {
       name: states.inApproval,
       onApproved: states.published,
-      otherParams: { colour: '#6554C0' },
+      otherParams: {
+        colour: '#6554C0',
+        // for diagram. doesn't really do anything and is safe to have anyway.
+        rejected: states.inReview,
+      },
       permissions: {
         viewOnly: managersOnly(),
         viewAndEdit: { users: [], groups: [] },
       },
       approvals: [
         {
-          name: 'Manager Approval',
-          fastReject: states.inProcess,
+          name: approvals.manager,
+          fastReject: states.inReview,
           otherParams: { user: '&' + managers()[0] },
         },
         {
-          name: 'Approval',
-          fastReject: states.inProcess,
+          name: approvals.approval,
+          fastReject: states.inReview,
           allowedAssigners: managersOnly(),
-          allowedApprovers: { users: [], groups: ['SLI Internal'] },
+          allowedApprovers: { users: [], groups: [sliGroup] },
           // rememberAssignees: true,
         },
       ],
@@ -110,15 +135,18 @@ const workflow = new WorkflowCreator({
       name: states.published,
       final: true,
       permissions: {
-        viewOnly: { users: [], groups: ['SLI Internal'] },
+        viewOnly: { users: [], groups: [sliGroup] },
         viewAndEdit: { users: [], groups: [] },
       },
     },
   ],
 });
 
+// enable selection from published to in process
 workflow.states[workflow.states.length - 1].addChild(
   new Tag('state-selection', { states: states.inProcess, user: managers().slice(0, 2) }, true),
 );
+
+//
 
 workflow.getMarkup();
