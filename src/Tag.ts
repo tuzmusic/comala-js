@@ -1,7 +1,9 @@
 import { ParamValueType } from './declarative-api/types';
+import clipboardy from 'clipboardy';
 
+// this below is bullshit that we need to say " | Tag[]" at the end or else childTags won't work.
 // eslint-disable-next-line @typescript-eslint/no-use-before-define
-export type ParamType = { childTags?: Tag[] } & Record<string, ParamValueType>
+export type ParamType = { childTags?: Tag[] } & Record<string, ParamValueType | Tag[]>
 
 export function lines(strs: string[]): string {
   return strs.join('\n');
@@ -75,9 +77,34 @@ export default class Tag {
     return lines(markupLines);
   }
 
+  getMarkup = () => {
+    clipboardy.writeSync(this.markup);
+    console.log(this.markup);
+    console.log(this.markup.split('\n').length, 'LINES');
+    console.warn('The above markup has been copied to the clipboard.');
+  };
+
   addTextContent = (...textLines: string[]) => { this.textLines = textLines; };
 
   addParameters = (params: Record<string, ParamValueType>) => { Object.assign(this.parameters, params); };
 
   addChild = (child: Tag) => { this.children.push(child); };
+}
+
+export class State extends Tag {
+  constructor(name: string, params: ParamType) {
+    super('state', { _: name, ...params });
+  }
+}
+
+export class Approval extends Tag {
+  constructor(name: string, params: ParamType) {
+    super('approval', { _: name, ...params });
+  }
+}
+
+export class Triggeer extends Tag {
+  constructor(name: string, params: ParamType) {
+    super('trigger', { _: name, ...params });
+  }
 }
