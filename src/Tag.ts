@@ -92,19 +92,19 @@ export default class Tag {
 }
 
 export class State extends Tag {
-  constructor(name: string, params: ParamType) {
-    super('state', { _: name, ...params });
+  constructor(name: string, params: ParamType, selfClosing = false) {
+    super('state', { _: name, ...params }, selfClosing);
   }
 }
 
 export class Approval extends Tag {
-  constructor(name: string, params: ParamType) {
-    super('approval', { _: name, ...params });
+  constructor(name: string, params: ParamType, selfClosing = false) {
+    super('approval', { _: name, ...params }, selfClosing);
   }
 }
 
-export class Triggeer extends Tag {
-  constructor(name: string, params: ParamType) {
-    super('trigger', { _: name, ...params });
+export class Trigger extends Tag {
+  constructor(name: string, params: ParamType, selfClosing = false) {
+    super('trigger', { _: name, ...params }, selfClosing);
   }
 }
