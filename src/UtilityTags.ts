@@ -13,8 +13,8 @@ export class State extends Tag {
 }
 
 export class Trigger extends Tag {
-  constructor(name: string, params: ParamType) {
-    super('trigger', { _: name, ...params });
+  constructor(name: string, params: ParamType, ...tags: Tag[]) {
+    super('trigger', { _: name, ...params, childTags: [...params.childTags || [], ...tags] });
   }
 }
 
