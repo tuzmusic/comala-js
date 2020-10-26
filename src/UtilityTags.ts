@@ -59,3 +59,16 @@ export class WorkflowParameter extends Tag {
     super('workflowparameter', { _: name, type, edit });
   }
 }
+
+export const Creators = {
+  WorkflowParameter: (name: string, type: 'user' | 'group' | 'string' | 'duration' | 'options', edit = true) => new WorkflowParameter(name, type, edit),
+  SelfClosingTag: (name: string, params: ParamType) => new SelfClosingTag(name, params),
+  State: (name: string, params: ParamType) => new State(name, params),
+  Trigger: (name: string, params: ParamType, ...tags: Tag[]) => new Trigger(name, params, ...tags),
+  Approval: (name: string, params: ParamType) => new Approval(name, params),
+  SetRestrictions: (type: 'view' | 'edit', params: ParamType) => new SetRestrictions(type, params),
+  AddRestriction: (type: 'view' | 'edit', params: ParamType) => new AddRestriction(type, params),
+  RemoveRestriction: (type: 'view' | 'edit', params?: ParamType) => new RemoveRestriction(type, params),
+  StateSelection: (states: string | string[], params?: ParamType) => new StateSelection(states, params),
+  SetState: (state: string) => new SetState(state),
+};
