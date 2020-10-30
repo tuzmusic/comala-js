@@ -22,3 +22,10 @@ export const Event: Record<string, (args: any) => Function> = {
 
   },
 };
+
+export const UserVariables = {
+  creator: '@creator@',
+  approvalAssignees: '@approvalassignees@',
+  assignee: '@assignee@',
+  assigneesFromReview: (approvalName: string) => `@${ approvalName } > approvalassignees@`,
+};
