@@ -60,6 +60,18 @@ export class WorkflowParameter extends Tag {
   }
 }
 
+export class CompleteTask extends SelfClosingTag {
+  constructor(taskName: string) {
+    super('complete-task', { task: taskName });
+  }
+}
+
+export class Task extends SelfClosingTag {
+  constructor(taskName: string, assignee: string) {
+    super('task', { name: taskName, assignee });
+  }
+}
+
 export const Creators = {
   WorkflowParameter: (name: string, type: 'user' | 'group' | 'string' | 'duration' | 'options', edit = true) => new WorkflowParameter(name, type, edit),
   SelfClosingTag: (name: string, params: ParamType) => new SelfClosingTag(name, params),
@@ -71,4 +83,6 @@ export const Creators = {
   RemoveRestriction: (type: 'view' | 'edit', params?: ParamType) => new RemoveRestriction(type, params),
   StateSelection: (states: string | string[], params?: ParamType) => new StateSelection(states, params),
   SetState: (state: string) => new SetState(state),
+  CompleteTask: (taskName: string) => new CompleteTask(taskName),
+  Task: (taskName: string, assignee: string) => new Task(taskName, assignee),
 };
