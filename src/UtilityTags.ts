@@ -7,8 +7,8 @@ export class SelfClosingTag extends Tag {
 }
 
 export class State extends Tag {
-  constructor(name: string, params: ParamType) {
-    super('state', { _: name, ...params });
+  constructor(name: string, params: ParamType, ...tags: Tag[]) {
+    super('state', { _: name, ...params, childTags: [...params.childTags || [], ...tags] });
   }
 }
 
