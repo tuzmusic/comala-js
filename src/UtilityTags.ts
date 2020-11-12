@@ -75,7 +75,7 @@ export class Task extends SelfClosingTag {
 export const Creators = {
   WorkflowParameter: (name: string, type: 'user' | 'group' | 'string' | 'duration' | 'options', edit = true) => new WorkflowParameter(name, type, edit),
   SelfClosingTag: (name: string, params: ParamType) => new SelfClosingTag(name, params),
-  State: (name: string, params: ParamType, ...tags: Tag[]) => new State(name, params),
+  State: (name: string, params: ParamType, ...tags: Tag[]) => new State(name, params, ...tags),
   Trigger: (name: string, params: ParamType, ...tags: Tag[]) => new Trigger(name, params, ...tags),
   Approval: (name: string, params: ParamType) => new Approval(name, params),
   SetRestrictions: (type: 'view' | 'edit', params: ParamType) => new SetRestrictions(type, params),
