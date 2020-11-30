@@ -1,12 +1,67 @@
 # Comala JS
 
-## The Problem: 
-### About Comala Document Management
+## Instructions
+1. Write your workflow as a single `workflow` object. 
+2. On your workflow object, run `getMarkup()` 
+    ```
+   workflow.getMarkup() 
+    ```
+   This will copy the markup to your clipboard, ready to be pasted in to the Comala markup editor.
+   
+## API (basic)
+The basic object is the `Tag` object. Its API is:
+```typescript
+type ParamValueType = string | string[] | number | boolean;
+
+type ParamType = { childTags?: Tag[] } & Record<string, ParamValueType | Tag[]>
+
+// not actually an Interface, since the constructor takes args not an object  
+interface TagParams {
+ tagName: string
+ parameters?: ParamType 
+ selfClosing?: boolean
+}
+
+Tag(tagName, parameters = {}, selfClosing = false)
+```
+For unnamed parameters, use an underscore as the key: `{ _: 'In Progress' }`
+
+Tags that are not `selfClosing` can take take a `childTags` param in the `parameters` object. Note that this is not currently enforced by the code. But if you do it wrong (e.g., `new Tag('state', { _: 'Published' }, true)` or `new Tag('remove-restrictions. { type: 'view', childTags: [/* some Tag(s) */] }, false)`), the workflow will obviously not work in Comala (and Comala probably won't even let you save it).
+
+Most tags that have been implemented also have more convenient creator functions, exported as the `Creators` object from `src/UtilityTags.ts` (TODO: How is this imported when this is a package?). These have sensible first string argument, take a varargs of child tags as their final argument, and have `selfClosing` set for you.
+ 
+Here is a full example, with the creator convenience functions:
+
+```typescript
+import Tag from './Tag';
+import { Creators } from './UtilityTags';
+
+const { State, Approval, Task, Trigger, AddRestriction, CompleteTask } = Creators;
+
+const workflow = new Tag('workflow', {
+  name: 'My Workflow',
+  childTags: [
+    State('In Progress', { final: false }, // state name, params
+      Approval('Progress Approval', { users: ['Some User', 'Another User'] }), // approval name, params
+      Task('This is the task', 'Some User') // task name, assignee
+    ),
+    Trigger('pageapproved', { approval: 'Progress Approval' }, // trigger type, params
+      AddRestriction('view', { group: 'Some Other Users' }), // restrictions type, params
+      CompleteTask('This is the Task') // task name
+    )
+  ]
+});
+
+workflow.getMarkup();
+```
+
+## About
+### Comala Document Management
 Comala Document Management (hereafter referred to simply as Comala) allows for document control workflows to be applied to Confluence pages. 
-In its simplest form, a page can begin in a draft state ("In Progress"), and then be approved by users, and then move into a published state ("Approved", or "Published", or whatever you'd like to call it). For revisions, the cycle can continue: an edit to a page in the "Published" state might transition the page into the "In Progress" state. Viewers can then switch their view between the "Published" and "In Progress" versions of the page.
+In its simplest form, a page can begin in a draft state ("In Progress"), and then be approved by users, and then move into a published state ("Approved", or "Published", or whatever you'd like to call it). For revisions, the cycle can continue: an edit to a page in the "Published" state might transition the page back into the "In Progress" state. Viewers can then switch their view between the "Published" and "In Progress" versions of the page.
 
 ### Page restrictions
-Confluence is intended to be used as a wiki, where anybody can edit. But in more tightly controlled use cases, such as a Quality Management system, view and edit permissions should be restricted. For instance, a document in a "Published" state, or under revision, should be editable only by certain users (the Quality Management team, the Process Owner, etc.); and if clients are users of the Confluence space or instance, they probably shouldn't be able to view QMS documents at all.
+Confluence is intended to be used as a wiki, where anybody can edit. But in more tightly controlled use cases, such as a Quality Management system, permissions for viewing and editing should be restricted. For instance, a document in a "Published" state, or under revision, should be editable only by certain users (the Quality Management team, the Process Owner, etc.); and if clients are users of the Confluence space or instance, they probably shouldn't be able to view QMS documents at all.
 
 Comala enables the switching of permissions, but it doesn't make it easy. And it can't be done from Comala's workflow builder, which is their UI for designing a workflow without using any code. 
 
@@ -40,8 +95,8 @@ Or something like that. To make it slightly easier, you could do something like 
 
 So it's a lot of work and a lot of thought has to go into it.
 
-## The *Real* Problem
-All of that is hard enough. But I haven't been completely honest here. My pseudocode examples, which maybe aren't very "pseudo", make it appear as if Comala can be configured using Javascript, or some other common programming language.
+### The *Real* Problem
+All of that is hard enough. But I haven't been completely honest here. My pseudocode examples (which maybe aren't very "pseudo") make it appear as if Comala can be configured using Javascript, or some other common programming language.
 
 In fact, Comala uses its own markup language. The workflow we've described, including the permissions for reviewers, would look like this:
 ```
@@ -79,7 +134,7 @@ I suppose this isn't all that bad. I suppose it's just another markup language t
 
 But, you're a modern coder. This is 2020. You don't want to write code in a Wild West of Comala's simple text editing interface, where you have to type every single character and hope you haven't made any errors and trust your puny human fingers and brain that everything has been done correctly! 
 
-You want to use a fancy modern IDE that automatically closes your parens and brackets. You want code completion. You want linting or type-checking of some kind. You want to use variables for repeated strings.
+You want to use a fancy modern IDE that automatically closes your parens and brackets. You want code completion. You want linting or type-checking of some kind. You want to use variables for oft-used values.
 
 Really, what you want is to program in a programming language. Javascript, let's say.
 
@@ -121,15 +176,18 @@ const workflow = new Tag('workflow', {
   ]
 })
 
-workflow.getMarkup() // prints the workflow markup to the console, and copies the markup to your clipboard, ready to paste right into the Comala editor.
+// prints the workflow markup to the console, 
+// and copies the markup to your clipboard, 
+// ready to paste right into the Comala editor.
+workflow.getMarkup() 
 ``` 
 
-Okay, so it's actually more lines. But it's a hell of a lot easier to *write*.
+Okay, so it's actually more lines of code in this case. But it's a hell of a lot easier to *write*.
 
 ## TODO: 
-- [ ] TLDR
-- [ ] Explain the problem and solution
-- [ ] How-to guide
+- [X] TLDR
+- [X] Explain the problem and solution
+- [X] How-to guide
 - [ ] Future plans
     - [ ] Improve internal testing (the regex testing classes)
     - [ ] Add Workflow Tester module, for testing the actual workflow in the wild
